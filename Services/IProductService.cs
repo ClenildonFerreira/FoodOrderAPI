@@ -8,6 +8,6 @@ namespace FoodOrderAPI.Services
         Task<List<ProductDto>> GetAllAsync();
         Task<ProductDto?> GetByIdAsync(int id);
         Task<Product> CreateAsync(Product product);
-        Task ImportFromTheMealDBAsync(int quantity = 10);
+        Task<int> ImportFromTheMealDBAsync(int quantity = 10);
     }
 }

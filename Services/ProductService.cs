@@ -56,39 +56,72 @@ public class ProductService : IProductService
         return product;
     }
 
-    public async Task ImportFromTheMealDBAsync(int quantity = 10)
+    public async Task<int> ImportFromTheMealDBAsync(int quantity = 10)
     {
+        var importedCount = 0;
+
         for (int i = 0; i < quantity; i++)
         {
-            var response = await _httpClient.GetStringAsync("https://www.themealdb.com/api/json/v1/1/random.php");
-            using var doc = JsonDocument.Parse(response);
-
-            if (!doc.RootElement.TryGetProperty("meals", out var meals) || meals.GetArrayLength() == 0)
-                continue;
-
-            var meal = meals[0];
-            var externalId = meal.GetProperty("idMeal").GetString();
-
-            if (await _context.Products.AnyAsync(p => p.ExternalId == externalId))
-                continue;
-
-            var instructions = meal.GetProperty("strInstructions").GetString() ?? "";
-            var description = instructions.Length > 300 ? instructions[..300] : instructions;
-
-            var product = new Product
+            try
             {
-                Name = meal.GetProperty("strMeal").GetString() ?? "Sem nome",
-                Description = description,
-                Category = meal.GetProperty("strCategory").GetString(),
-                ImageUrl = meal.GetProperty("strMealThumb").GetString(),
-                ExternalId = externalId,
-                Price = Random.Shared.Next(25, 90) + 0.90m,
-                IsActive = true
-            };
+                var response = await _httpClient.GetStringAsync(
+                    "https://www.themealdb.com/api/json/v1/1/random.php");
 
-            _context.Products.Add(product);
+                using var doc = JsonDocument.Parse(response);
+
+                if (!doc.RootElement.TryGetProperty("meals", out var meals) ||
+                    meals.GetArrayLength() == 0)
+                    continue;
+
+                var meal = meals[0];
+                var externalId = meal.GetProperty("idMeal").GetString();
+
+                if (string.IsNullOrWhiteSpace(externalId))
+                    continue;
+
+                // Evita duplicar
+                if (await _context.Products.AnyAsync(p => p.ExternalId == externalId))
+                    continue;
+
+                var instructions = meal.GetProperty("strInstructions").GetString() ?? "";
+                var description = instructions.Length > 300
+                    ? instructions[..300]
+                    : instructions;
+
+                var product = new Product
+                {
+                    Name = meal.GetProperty("strMeal").GetString() ?? "Sem nome",
+                    Description = description,
+                    Category = meal.GetProperty("strCategory").GetString(),
+                    ImageUrl = meal.GetProperty("strMealThumb").GetString(),
+                    ExternalId = externalId,
+                    Price = Random.Shared.Next(25, 90) + 0.90m,
+                    IsActive = true
+                };
+
+                _context.Products.Add(product);
+                importedCount++;
+            }
+            catch (HttpRequestException)
+            {
+                // Falha de rede → continua para a próxima tentativa
+                continue;
+            }
+            catch (JsonException)
+            {
+                // JSON inválido → continua
+                continue;
+            }
+            catch (Exception)
+            {
+                // Qualquer outro erro inesperado → continua
+                continue;
+            }
         }
 
-        await _context.SaveChangesAsync();
+        if (importedCount > 0)
+            await _context.SaveChangesAsync();
+
+        return importedCount;
     }
 }

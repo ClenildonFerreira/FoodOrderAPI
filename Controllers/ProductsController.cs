@@ -31,9 +31,15 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost("import")]
-    public async Task<ActionResult> ImportFromTheMealDB([FromQuery] int quantity = 10)
+    public async Task<IActionResult> ImportFromTheMealDB([FromQuery] int quantity = 10)
     {
-        await _productService.ImportFromTheMealDBAsync(quantity);
-        return Ok(new { message = $"{quantity} produtos importados com sucesso. (TheMealDB)" });
+        var imported = await _productService.ImportFromTheMealDBAsync(quantity);
+
+        return Ok(new
+        {
+            message = $"{imported} produto(s) importado(s) com sucesso do TheMealDB.",
+            requested = quantity,
+            imported
+        });
     }
 }
