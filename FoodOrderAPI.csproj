@@ -22,4 +22,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="FoodOrderAPI.Tests\**" />
+    <Content Remove="FoodOrderAPI.Tests\**" />
+    <EmbeddedResource Remove="FoodOrderAPI.Tests\**" />
+    <None Remove="FoodOrderAPI.Tests\**" />
+</ItemGroup>
+
 </Project>
