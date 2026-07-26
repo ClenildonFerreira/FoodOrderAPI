@@ -16,10 +16,24 @@ public class OrderService : IOrderService
 
     public async Task<OrderDto> CreateAsync(CreateOrderDto dto)
     {
+        // validações básicas
+        if (string.IsNullOrWhiteSpace(dto.CustomerName))
+            throw new ArgumentException("Nome do cliente é obrigatório.");
+
+        if (dto.Items is null || !dto.Items.Any())
+            throw new ArgumentException("O pedido deve conter pelo menos 1 item.");
+
+        if (dto.Items.Any(i => i.Quantity <= 0))
+            throw new ArgumentException("A quantidade de cada item deve ser maior que zero.");
+
+        // validaçao de messa para pedidos de salão 
+        if (dto.Type == OrderTypeDto.Table && string.IsNullOrWhiteSpace(dto.TableNumber))
+            throw new ArgumentException("Número da mesa é obrigatório para pedidos de salão.");
+
         var order = new Order
         {
-            CustomerName = dto.CustomerName,
-            TableNumber = dto.TableNumber,
+            CustomerName = dto.CustomerName.Trim(),
+            TableNumber = dto.TableNumber?.Trim(),
             Type = (OrderType)dto.Type,
             Status = OrderStatus.Received,
             CreatedAt = DateTime.UtcNow
@@ -30,8 +44,11 @@ public class OrderService : IOrderService
         foreach (var itemDto in dto.Items)
         {
             var product = await _context.Products.FindAsync(itemDto.ProductId);
-            if (product is null || !product.IsActive)
-                throw new Exception($"Produto {itemDto.ProductId} não encontrado ou inativo.");
+            
+            if (product is null)
+                throw new ArgumentException($"Produto com ID {itemDto.ProductId} não encontrado.");
+            if (!product.IsActive)
+                throw new ArgumentException($"O Produto {product.Name} está inativo e não pode ser adicionado ao pedido.");
 
             var orderItem = new OrderItem
             {

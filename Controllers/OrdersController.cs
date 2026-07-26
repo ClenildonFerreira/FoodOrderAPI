@@ -38,9 +38,14 @@ public class OrdersController : ControllerBase
             var order = await _orderService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
         }
-        catch (Exception ex)
+        catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro interno do servidor", details = ex.Message });
         }
     }
 
