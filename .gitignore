@@ -50,6 +50,7 @@ bld/
 *.db
 *.db-shm
 *.db-wal
+foodorder.db
 
 ## OS
 .DS_Store
