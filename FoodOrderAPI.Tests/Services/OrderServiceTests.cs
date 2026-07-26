@@ -267,4 +267,31 @@ public class OrderServiceTests
         result.Should().HaveCount(1);
         result[0].CustomerName.Should().Be("Pedro");
     }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldFilterByStatus()
+    {
+        var context = CreateInMemoryContext();
+        var service = new OrderService(context);
+
+        var dto = new CreateOrderDto
+        {
+            CustomerName = "João",
+            Type = OrderTypeDto.Delivery,
+            Items = new() { new() { ProductId = 1, Quantity = 1 } }
+        };
+
+        var order = await service.CreateAsync(dto);
+
+        await service.UpdateStatusAsync(order.Id, new UpdateOrderStatusDto
+        {
+            Status = OrderStatusDto.Preparing
+        });
+
+        var preparing = await service.GetAllAsync(OrderStatus.Preparing);
+        var received = await service.GetAllAsync(OrderStatus.Received);
+
+        preparing.Should().HaveCount(1);
+        received.Should().BeEmpty();
+    }
 }

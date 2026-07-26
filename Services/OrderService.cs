@@ -87,11 +87,17 @@ public class OrderService : IOrderService
         return MapToDto(order);
     }
 
-    public async Task<List<OrderDto>> GetAllAsync()
+    public async Task<List<OrderDto>> GetAllAsync(OrderStatus? status = null)
     {
-        var orders = await _context.Orders
+        var query = _context.Orders
             .Include(o => o.Items)
             .ThenInclude(i => i.Product)
+            .AsQueryable();
+
+        if (status.HasValue)
+            query = query.Where(o => o.Status == status.Value);
+
+        var orders = await query
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
 

@@ -1,4 +1,6 @@
 using FoodOrderAPI.DTOs;
+using FoodOrderAPI.Models;
+
 
 namespace FoodOrderAPI.Services
 {
@@ -6,7 +8,7 @@ namespace FoodOrderAPI.Services
     {
         Task<OrderDto> CreateAsync(CreateOrderDto dto);
         Task<OrderDto?> GetByIdAsync(int id);
-        Task<List<OrderDto>> GetAllAsync();
+        Task<List<OrderDto>> GetAllAsync(OrderStatus? status = null);
         Task<OrderDto?> UpdateStatusAsync(int id, UpdateOrderStatusDto dto);
     }
 }

@@ -1,5 +1,6 @@
 using FoodOrderAPI.DTOs;
 using FoodOrderAPI.Services;
+using FoodOrderAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodOrderAPI.Controllers;
@@ -16,9 +17,9 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<OrderDto>>> GetAll()
+    public async Task<ActionResult<List<OrderDto>>> GetAll([FromQuery] OrderStatus? status = null)
     {
-        var orders = await _orderService.GetAllAsync();
+        var orders = await _orderService.GetAllAsync(status);
         return Ok(orders);
     }
 
