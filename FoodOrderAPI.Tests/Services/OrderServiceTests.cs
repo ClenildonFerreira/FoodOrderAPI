@@ -247,6 +247,7 @@ public class OrderServiceTests
         result.Should().BeNull();
     }
 
+    
     [Fact]
     public async Task GetAllAsync_ShouldReturnOrders()
     {
@@ -264,8 +265,8 @@ public class OrderServiceTests
 
         var result = await service.GetAllAsync();
 
-        result.Should().HaveCount(1);
-        result[0].CustomerName.Should().Be("Pedro");
+        result.Items.Should().HaveCount(1);
+        result.Items[0].CustomerName.Should().Be("Pedro");
     }
 
     [Fact]
@@ -291,7 +292,7 @@ public class OrderServiceTests
         var preparing = await service.GetAllAsync(OrderStatus.Preparing);
         var received = await service.GetAllAsync(OrderStatus.Received);
 
-        preparing.Should().HaveCount(1);
-        received.Should().BeEmpty();
+        preparing.Items.Should().HaveCount(1);
+        received.Items.Should().BeEmpty();
     }
 }

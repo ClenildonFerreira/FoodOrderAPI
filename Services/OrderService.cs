@@ -87,8 +87,15 @@ public class OrderService : IOrderService
         return MapToDto(order);
     }
 
-    public async Task<List<OrderDto>> GetAllAsync(OrderStatus? status = null)
+    public async Task<PagedResultDto<OrderDto>> GetAllAsync(
+        OrderStatus? status = null, 
+        int page = 1, 
+        int pageSize = 10)
     {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 50) pageSize = 50;
+
         var query = _context.Orders
             .Include(o => o.Items)
             .ThenInclude(i => i.Product)
@@ -97,11 +104,21 @@ public class OrderService : IOrderService
         if (status.HasValue)
             query = query.Where(o => o.Status == status.Value);
 
+        var totalItems = await query.CountAsync();
+
         var orders = await query
             .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return orders.Select(MapToDto).ToList();
+        return new PagedResultDto<OrderDto>
+        {
+            Items = orders.Select(MapToDto).ToList(),
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems
+        };
     }
 
     public async Task<OrderDto?> UpdateStatusAsync(int id, UpdateOrderStatusDto dto)

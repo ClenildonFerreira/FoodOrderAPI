@@ -17,10 +17,13 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<OrderDto>>> GetAll([FromQuery] OrderStatus? status = null)
+    public async Task<ActionResult<PagedResultDto<OrderDto>>> GetAll(
+        [FromQuery] OrderStatus? status = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var orders = await _orderService.GetAllAsync(status);
-        return Ok(orders);
+        var result = await _orderService.GetAllAsync(status, page, pageSize);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
