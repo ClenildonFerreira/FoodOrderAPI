@@ -146,4 +146,73 @@ public class OrderServiceTests
         result.Total.Should().Be(45.90m * 2 + 8.50m);
         result.Items.Should().HaveCount(2);
     }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldUpdate_WhenTransitionIsValid()
+    {
+        var context = CreateInMemoryContext();
+        var service = new OrderService(context);
+
+        // Cria um pedido primeiro
+        var createDto = new CreateOrderDto
+        {
+            CustomerName = "Carlos",
+            Type = OrderTypeDto.Delivery,
+            Items = new() { new() { ProductId = 1, Quantity = 1 } }
+        };
+
+        var order = await service.CreateAsync(createDto);
+
+        var updateDto = new UpdateOrderStatusDto
+        {
+            Status = OrderStatusDto.Preparing,
+            Notes = "Em preparo"
+        };
+
+        var result = await service.UpdateStatusAsync(order.Id, updateDto);
+
+        result.Should().NotBeNull();
+        result!.Status.Should().Be("Preparing");
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldThrow_WhenTransitionIsInvalid()
+    {
+        var context = CreateInMemoryContext();
+        var service = new OrderService(context);
+
+        var createDto = new CreateOrderDto
+        {
+            CustomerName = "Carlos",
+            Type = OrderTypeDto.Delivery,
+            Items = new() { new() { ProductId = 1, Quantity = 1 } }
+        };
+
+        var order = await service.CreateAsync(createDto);
+
+        var updateDto = new UpdateOrderStatusDto
+        {
+            Status = OrderStatusDto.Delivered
+        };
+
+        var act = async () => await service.UpdateStatusAsync(order.Id, updateDto);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Não é permitido*");
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldReturnNull_WhenOrderNotFound()
+    {
+        var service = new OrderService(CreateInMemoryContext());
+
+        var updateDto = new UpdateOrderStatusDto
+        {
+            Status = OrderStatusDto.Preparing
+        };
+
+        var result = await service.UpdateStatusAsync(999, updateDto);
+
+        result.Should().BeNull();
+    }
 }
