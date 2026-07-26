@@ -47,8 +47,15 @@ public class OrdersController : ControllerBase
     [HttpPatch("{id}/status")]
     public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
     {
-        var order = await _orderService.UpdateStatusAsync(id, dto);
-        if (order is null) return NotFound();
-        return Ok(order);
+       try
+        {
+            var order = await _orderService.UpdateStatusAsync(id, dto);
+            if (order is null) return NotFound();
+            return Ok(order);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 }

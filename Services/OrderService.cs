@@ -90,12 +90,21 @@ public class OrderService : IOrderService
 
         if (order is null) return null;
 
-        order.Status = (OrderStatus)dto.Status;
+        var newStatus = (OrderStatus)dto.Status;
+
+        if (!OrderStatusTransition.CanTransition(order.Status, newStatus))
+        {
+            throw new InvalidOperationException(
+                OrderStatusTransition.GetErrorMessage(order.Status, newStatus)
+            );
+        }
+
+        order.Status = newStatus;
 
         order.StatusHistory.Add(new OrderStatusHistory
         {
-            Status = order.Status,
-            Notes = dto.Notes
+            Status = newStatus,
+            Notes = dto.Notes ?? $"Status alterado para {newStatus}"
         });
 
         await _context.SaveChangesAsync();
