@@ -68,19 +68,21 @@ public class ProductServiceTests
         result.Should().BeNull();
     }
 
-    [Fact]
+   [Fact]
     public async Task ImportFromTheMealDBAsync_ShouldImportProducts()
     {
         var context = CreateInMemoryContext();
         var service = CreateService(context);
 
-        await service.ImportFromTheMealDBAsync(2);
+        var imported = await service.ImportFromTheMealDBAsync(2);
+
+        imported.Should().BeGreaterThanOrEqualTo(0);
 
         var products = await context.Products
             .Where(p => p.ExternalId != null)
             .ToListAsync();
 
-        products.Should().NotBeEmpty();
+        products.Should().HaveCount(imported);
         products.Should().OnlyContain(p => p.IsActive);
     }
 
