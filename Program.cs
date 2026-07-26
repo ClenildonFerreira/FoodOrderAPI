@@ -1,4 +1,5 @@
 using FoodOrderAPI.Data;
+using FoodOrderAPI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,10 @@ builder.Services.AddSwaggerGen();
 // Database 
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlite("Data Source=foodorder.db"));
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
 
