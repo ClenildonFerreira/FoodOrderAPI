@@ -2,6 +2,8 @@ using FoodOrderAPI.DTOs;
 using FoodOrderAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
+namespace FoodOrderAPI.Controllers;
+
 [ApiController]
 [Route("api/v1/[controller]")]
 public class OrdersController : ControllerBase
