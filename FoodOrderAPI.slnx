@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="FoodOrderAPI.csproj" />
+  <Project Path="FoodOrderAPI.Tests/FoodOrderAPI.Tests.csproj" />
+</Solution>
