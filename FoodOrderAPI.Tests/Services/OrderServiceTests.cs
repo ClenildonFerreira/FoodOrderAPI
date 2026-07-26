@@ -215,4 +215,56 @@ public class OrderServiceTests
 
         result.Should().BeNull();
     }
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldReturnOrder_WhenExists()
+    {
+        var context = CreateInMemoryContext();
+        var service = new OrderService(context);
+
+        var createDto = new CreateOrderDto
+        {
+            CustomerName = "Ana",
+            Type = OrderTypeDto.Delivery,
+            Items = new() { new() { ProductId = 1, Quantity = 1 } }
+        };
+
+        var created = await service.CreateAsync(createDto);
+
+        var result = await service.GetByIdAsync(created.Id);
+
+        result.Should().NotBeNull();
+        result!.CustomerName.Should().Be("Ana");
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldReturnNull_WhenNotExists()
+    {
+        var service = new OrderService(CreateInMemoryContext());
+
+        var result = await service.GetByIdAsync(999);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldReturnOrders()
+    {
+        var context = CreateInMemoryContext();
+        var service = new OrderService(context);
+
+        var dto = new CreateOrderDto
+        {
+            CustomerName = "Pedro",
+            Type = OrderTypeDto.Delivery,
+            Items = new() { new() { ProductId = 1, Quantity = 1 } }
+        };
+
+        await service.CreateAsync(dto);
+
+        var result = await service.GetAllAsync();
+
+        result.Should().HaveCount(1);
+        result[0].CustomerName.Should().Be("Pedro");
+    }
 }
