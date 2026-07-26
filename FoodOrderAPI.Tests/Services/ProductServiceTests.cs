@@ -69,6 +69,22 @@ public class ProductServiceTests
     }
 
     [Fact]
+    public async Task ImportFromTheMealDBAsync_ShouldImportProducts()
+    {
+        var context = CreateInMemoryContext();
+        var service = CreateService(context);
+
+        await service.ImportFromTheMealDBAsync(2);
+
+        var products = await context.Products
+            .Where(p => p.ExternalId != null)
+            .ToListAsync();
+
+        products.Should().NotBeEmpty();
+        products.Should().OnlyContain(p => p.IsActive);
+    }
+
+    [Fact]
     public async Task GetByIdAsync_ShouldReturnNull_WhenNotExists()
     {
         var context = CreateInMemoryContext();
@@ -103,11 +119,46 @@ public class ProductServiceTests
     }
 }
 
-// Fake simples para não precisar de HTTP real nos testes
 public class FakeHttpClientFactory : IHttpClientFactory
 {
     public HttpClient CreateClient(string name = "")
     {
-        return new HttpClient();
+        var handler = new FakeHttpMessageHandler();
+        return new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://www.themealdb.com/")
+        };
     }
+}
+
+
+
+public class FakeHttpMessageHandler : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, 
+        CancellationToken cancellationToken)
+    {
+        var json = """
+        {
+          "meals": [
+            {
+              "idMeal": "52772",
+              "strMeal": "Teriyaki Chicken Casserole",
+              "strCategory": "Chicken",
+              "strInstructions": "Instruções de preparo do prato de teste.",
+              "strMealThumb": "https://www.themealdb.com/images/media/meals/wvpsxx1468257224.jpg"
+            }
+          ]
+        }
+        """;
+
+        var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+        {
+            Content = new StringContent(json)
+        };
+
+        return Task.FromResult(response);
+    }
+
 }
