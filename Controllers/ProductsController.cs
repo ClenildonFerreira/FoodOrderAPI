@@ -16,10 +16,12 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ProductDto>>> GetAll()
+    public async Task<ActionResult<PagedResultDto<ProductDto>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var products = await _productService.GetAllAsync();
-        return Ok(products);
+        var result = await _productService.GetAllAsync(page, pageSize);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]

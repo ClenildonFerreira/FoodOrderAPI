@@ -17,10 +17,20 @@ public class ProductService : IProductService
         _httpClient = httpClientFactory.CreateClient();
     }
 
-    public async Task<List<ProductDto>> GetAllAsync()
+    public async Task<PagedResultDto<ProductDto>> GetAllAsync(int page = 1, int pageSize = 10)
     {
-        return await _context.Products
-            .Where(p => p.IsActive)
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 50) pageSize = 50;
+
+        var query = _context.Products.Where(p => p.IsActive);
+
+        var totalItems = await query.CountAsync();
+
+        var products = await query
+            .OrderBy(p => p.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(p => new ProductDto
             {
                 Id = p.Id,
@@ -31,6 +41,14 @@ public class ProductService : IProductService
                 Category = p.Category
             })
             .ToListAsync();
+
+        return new PagedResultDto<ProductDto>
+        {
+            Items = products,
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems
+        };
     }
 
     public async Task<ProductDto?> GetByIdAsync(int id)

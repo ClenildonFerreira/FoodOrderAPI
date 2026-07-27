@@ -39,9 +39,8 @@ public class ProductServiceTests
         var service = CreateService(context);
 
         var result = await service.GetAllAsync();
-
-        result.Should().HaveCount(2);
-        result.Should().OnlyContain(p => p.Name == "Pizza" || p.Name == "Suco");
+        result.Items.Should().HaveCount(2);
+        result.Items.Should().OnlyContain(p => p.Name == "Pizza" || p.Name == "Suco");
     }
 
     [Fact]
