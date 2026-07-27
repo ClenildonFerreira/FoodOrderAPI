@@ -124,7 +124,8 @@ public class OrderServiceTests
     [Fact]
     public async Task CreateAsync_ShouldCreateOrder_WhenDataIsValid()
     {
-        var service = new OrderService(CreateInMemoryContext());
+        var context = CreateInMemoryContext();
+        var service = new OrderService(context);
 
         var dto = new CreateOrderDto
         {
@@ -145,6 +146,10 @@ public class OrderServiceTests
         result.Status.Should().Be("Received");
         result.Total.Should().Be(45.90m * 2 + 8.50m);
         result.Items.Should().HaveCount(2);
+
+        result.StatusHistory.Should().HaveCount(1);
+        result.StatusHistory[0].Status.Should().Be("Received");
+        result.StatusHistory[0].Notes.Should().Be("Pedido criado");
     }
 
     [Fact]
@@ -171,9 +176,10 @@ public class OrderServiceTests
 
         var result = await service.UpdateStatusAsync(order.Id, updateDto);
 
+       
+        result!.StatusHistory.Should().HaveCount(2);
         result.Should().NotBeNull();
-        result!.Status.Should().Be("Preparing");
-    }
+        result.StatusHistory.Last().Status.Should().Be("Preparing");    }
 
     [Fact]
     public async Task UpdateStatusAsync_ShouldThrow_WhenTransitionIsInvalid()
