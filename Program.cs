@@ -12,7 +12,7 @@ builder.Services.AddSwaggerGen();
 
 // Database 
 builder.Services.AddDbContext<AppDbContext>(options =>
-options.UseSqlite("Data Source=foodorder.db"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IProductService, ProductService>();
