@@ -2,7 +2,7 @@
 
 API de gestão de pedidos para restaurantes, desenvolvida em **.NET 10** com foco em regras de negócio reais de salão, cozinha e delivery.
 
-O projeto simula o fluxo operacional de um ERP gastronômico: cardápio, criação de pedidos, controle de status, histórico de alterações e importação de produtos.
+O projeto simula o fluxo operacional de um ERP gastronômico: cardápio, criação de pedidos, controle de status, histórico de alterações, autenticação JWT e importação de produtos.
 
 ---
 
@@ -11,6 +11,7 @@ O projeto simula o fluxo operacional de um ERP gastronômico: cardápio, criaç�
 - .NET 10
 - ASP.NET Core Web API
 - Entity Framework Core + SQLite
+- JWT Authentication
 - xUnit + FluentAssertions + Moq
 - Swagger / OpenAPI
 - TheMealDB (API externa de cardápio)
@@ -19,23 +20,30 @@ O projeto simula o fluxo operacional de um ERP gastronômico: cardápio, criaç�
 
 ## Funcionalidades
 
+### Autenticação
+- Login com JWT
+- Endpoints protegidos com `[Authorize]`
+- Swagger configurado com Bearer token
+
 ### Produtos
-- Listagem de produtos ativos
+- Listagem de produtos ativos (com paginação)
 - Busca por ID
-- Importação de pratos via **TheMealDB** (com tratamento de erros e contagem de importados)
+- Importação de pratos via **TheMealDB**
 
 ### Pedidos
 - Criação de pedidos (Salão ou Delivery)
-- Listagem com filtro por status
+- Listagem com paginação
+- Filtro por status e tipo
 - Consulta por ID
 - Atualização controlada de status
 - Histórico de mudanças de status
+- Resumo por status (dashboard)
 - Cálculo automático do total
 
 ### Qualidade
 - Validações de regras de negócio
 - Middleware global de tratamento de erros
-- Testes unitários (29+ testes)
+- Testes unitários
 - Cobertura de regras de negócio ~90%
 
 ---
