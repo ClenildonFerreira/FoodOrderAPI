@@ -1,9 +1,11 @@
 using FoodOrderAPI.DTOs;
 using FoodOrderAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodOrderAPI.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
 public class ProductsController : ControllerBase
@@ -14,7 +16,8 @@ public class ProductsController : ControllerBase
     {
         _productService = productService;
     }
-
+    
+    [AllowAnonymous]
     [HttpGet]
     public async Task<ActionResult<PagedResultDto<ProductDto>>> GetAll(
         [FromQuery] int page = 1,
@@ -24,6 +27,7 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductDto>> GetById(int id)
     {

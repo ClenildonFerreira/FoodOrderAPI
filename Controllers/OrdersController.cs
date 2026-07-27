@@ -2,11 +2,13 @@ using FoodOrderAPI.DTOs;
 using FoodOrderAPI.Services;
 using FoodOrderAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FoodOrderAPI.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
+[Authorize]
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
