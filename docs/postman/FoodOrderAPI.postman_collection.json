@@ -7,6 +7,38 @@
   },
   "item": [
     {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \r\n    \"username\": \"admin\", \r\n    \"password\": \"admin123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Products",
       "item": [
         {
@@ -74,8 +106,24 @@
         {
           "name": "Importar pratos do TheMealDB",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/products/import?quantity={{quantidade}}",
               "host": [
@@ -104,7 +152,13 @@
           "name": "Criar Pedido de Salão",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\r\n  \"customerName\": \"Hitalo Silva\",\r\n  \"tableNumber\": \"25\",\r\n  \"type\": 1,\r\n  \"items\": [\r\n    { \"productId\": 1, \"quantity\": 4 },\r\n    { \"productId\": 2, \"quantity\": 4 },\r\n    { \"productId\": 2, \"quantity\": 4}\r\n  ]\r\n}",
@@ -130,7 +184,13 @@
           "name": "Criar Pedido de Delivery",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\r\n  \"customerName\": \"Maria Souza\",\r\n  \"type\": 2,\r\n  \"items\": [\r\n    { \"productId\": 1, \"quantity\": 1 }\r\n  ]\r\n}",
@@ -156,7 +216,13 @@
           "name": "Atualizar status do pedido",
           "request": {
             "method": "PATCH",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\r\n  \"status\": 2,\r\n  \"notes\": \"Pedido em preparo na cozinha\"\r\n}",
@@ -187,7 +253,13 @@
           },
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "",
@@ -198,12 +270,19 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/orders",
+              "raw": "{{base_url}}/orders?",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "orders"
+              ],
+              "query": [
+                {
+                  "key": "",
+                  "value": null,
+                  "type": "text"
+                }
               ]
             }
           },
@@ -213,7 +292,13 @@
           "name": "Listar Pedidos com paginação",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/orders?page=1&pageSize=10",
               "host": [
@@ -240,7 +325,13 @@
           "name": "Filtrar Pedidos em preparo",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/orders?status=Preparing",
               "host": [
@@ -286,7 +377,13 @@
           "name": "Filtrar pedidos de Delivery",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/orders?type=2",
               "host": [
@@ -309,7 +406,13 @@
           "name": "Filtrar Delivery Prontos",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/orders?status=Ready&type=2",
               "host": [
@@ -336,7 +439,13 @@
           "name": "Buscar Pedidos por ID",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/orders/1",
               "host": [
@@ -359,7 +468,13 @@
           "name": "Resumo de Pedidos",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{json_web_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/orders/summary",
               "host": [
@@ -374,6 +489,20 @@
           "response": []
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "json_web_token_0vm0",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0w7s",
+      "secret": true
+    },
+    {
+      "key": "json_web_token",
+      "value": ""
     }
   ]
 }
