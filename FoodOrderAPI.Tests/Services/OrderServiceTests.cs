@@ -295,4 +295,25 @@ public class OrderServiceTests
         preparing.Items.Should().HaveCount(1);
         received.Items.Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task GetSummaryAsync_ShouldReturnCounts()
+    {
+        var context = CreateInMemoryContext();
+        var service = new OrderService(context);
+
+        var dto = new CreateOrderDto
+        {
+            CustomerName = "Teste",
+            Type = OrderTypeDto.Delivery,
+            Items = new() { new() { ProductId = 1, Quantity = 1 } }
+        };
+
+        await service.CreateAsync(dto);
+
+        var summary = await service.GetSummaryAsync();
+
+        summary.Received.Should().Be(1);
+        summary.Total.Should().Be(1);
+    }
 }
