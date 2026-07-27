@@ -88,8 +88,9 @@ public class OrderService : IOrderService
     }
 
     public async Task<PagedResultDto<OrderDto>> GetAllAsync(
-        OrderStatus? status = null, 
-        int page = 1, 
+        OrderStatus? status = null,
+        OrderType? type = null,
+        int page = 1,
         int pageSize = 10)
     {
         if (page < 1) page = 1;
@@ -103,6 +104,9 @@ public class OrderService : IOrderService
 
         if (status.HasValue)
             query = query.Where(o => o.Status == status.Value);
+
+        if (type.HasValue)
+            query = query.Where(o => o.Type == type.Value);
 
         var totalItems = await query.CountAsync();
 
@@ -118,6 +122,23 @@ public class OrderService : IOrderService
             Page = page,
             PageSize = pageSize,
             TotalItems = totalItems
+        };
+    }
+
+    public async Task<OrderSummaryDto> GetSummaryAsync()
+    {
+        var orders = await _context.Orders
+            .GroupBy(o => o.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        return new OrderSummaryDto
+        {
+            Received = orders.FirstOrDefault(x => x.Status == OrderStatus.Received)?.Count ?? 0,
+            Preparing = orders.FirstOrDefault(x => x.Status == OrderStatus.Preparing)?.Count ?? 0,
+            Ready = orders.FirstOrDefault(x => x.Status == OrderStatus.Ready)?.Count ?? 0,
+            Delivered = orders.FirstOrDefault(x => x.Status == OrderStatus.Delivered)?.Count ?? 0,
+            Cancelled = orders.FirstOrDefault(x => x.Status == OrderStatus.Cancelled)?.Count ?? 0
         };
     }
 

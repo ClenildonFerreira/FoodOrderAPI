@@ -19,11 +19,19 @@ public class OrdersController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResultDto<OrderDto>>> GetAll(
         [FromQuery] OrderStatus? status = null,
+        [FromQuery] OrderType? type = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await _orderService.GetAllAsync(status, page, pageSize);
+        var result = await _orderService.GetAllAsync(status, type, page, pageSize);
         return Ok(result);
+    }
+
+    [HttpGet("summary")]
+    public async Task<ActionResult<OrderSummaryDto>> GetSummary()
+    {
+        var summary = await _orderService.GetSummaryAsync();
+        return Ok(summary);
     }
 
     [HttpGet("{id}")]
