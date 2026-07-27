@@ -79,7 +79,8 @@ public class OrderService : IOrderService
     {
         var order = await _context.Orders
             .Include(o => o.Items)
-            .ThenInclude(i => i.Product)
+                .ThenInclude(i => i.Product)
+            .Include(o => o.StatusHistory)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order is null) return null;
@@ -99,7 +100,8 @@ public class OrderService : IOrderService
 
         var query = _context.Orders
             .Include(o => o.Items)
-            .ThenInclude(i => i.Product)
+                .ThenInclude(i => i.Product)
+            .Include(o => o.StatusHistory)
             .AsQueryable();
 
         if (status.HasValue)
@@ -147,6 +149,7 @@ public class OrderService : IOrderService
         var order = await _context.Orders
             .Include(o => o.Items)
             .ThenInclude(i => i.Product)
+            .Include(o => o.StatusHistory)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order is null) return null;
@@ -189,7 +192,14 @@ public class OrderService : IOrderService
                 ProductName = i.Product.Name,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice
-            }).ToList()
+            }).ToList(), 
+            StatusHistory = order.StatusHistory
+            .OrderBy(h => h.ChangedAt)
+            .Select(h => new OrderStatusHistoryDto {
+                 Status = h.Status.ToString(),
+                 ChangedAt = h.ChangedAt,
+                 Notes = h.Notes
+                }).ToList()
         };
     }
 }

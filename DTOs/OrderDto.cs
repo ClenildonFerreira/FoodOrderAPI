@@ -10,6 +10,7 @@ public class OrderDto
     public DateTime CreatedAt { get; set; }
     public decimal Total { get; set; }
     public List<OrderItemDto> Items { get; set; } = new();
+    public List<OrderStatusHistoryDto> StatusHistory { get; set; } = new();
 }
 
 public class OrderItemDto
@@ -18,4 +19,11 @@ public class OrderItemDto
     public string ProductName { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
+}
+
+public class OrderStatusHistoryDto
+{
+    public string Status { get; set; } = string.Empty;
+    public DateTime ChangedAt { get; set; }
+    public string? Notes { get; set; }
 }
