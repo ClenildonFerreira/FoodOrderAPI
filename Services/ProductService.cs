@@ -76,15 +76,46 @@ public class ProductService : IProductService
 
     public async Task<int> ImportFromTheMealDBAsync(int quantity = 10)
     {
-        var importedCount = 0;
+        if (quantity <= 0) return 0;
+        if (quantity > 100) quantity = 100;
 
-        for (int i = 0; i < quantity; i++)
+        var importedCount = 0;
+        using var semaphore = new SemaphoreSlim(5); 
+
+        var tasks = Enumerable.Range(0, quantity).Select(async _ =>
         {
+            await semaphore.WaitAsync();
             try
             {
-                var response = await _httpClient.GetStringAsync(
-                    "https://www.themealdb.com/api/json/v1/1/random.php");
+                return await _httpClient.GetStringAsync("https://www.themealdb.com/api/json/v1/1/random.php");
+            }
+            catch (HttpRequestException)
+            {
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }).ToList();
 
+        var responses = await Task.WhenAll(tasks);
+        var existingExternalIds = await _context.Products
+            .Where(p => p.ExternalId != null)
+            .Select(p => p.ExternalId!)
+            .ToHashSetAsync();
+
+        foreach (var response in responses)
+        {
+            if (string.IsNullOrWhiteSpace(response))
+                continue;
+
+            try
+            {
                 using var doc = JsonDocument.Parse(response);
 
                 if (!doc.RootElement.TryGetProperty("meals", out var meals) ||
@@ -97,8 +128,7 @@ public class ProductService : IProductService
                 if (string.IsNullOrWhiteSpace(externalId))
                     continue;
 
-                // Evita duplicar
-                if (await _context.Products.AnyAsync(p => p.ExternalId == externalId))
+                if (existingExternalIds.Contains(externalId))
                     continue;
 
                 var instructions = meal.GetProperty("strInstructions").GetString() ?? "";
@@ -118,21 +148,15 @@ public class ProductService : IProductService
                 };
 
                 _context.Products.Add(product);
+                existingExternalIds.Add(externalId); // Registra no hashset temporário da execução
                 importedCount++;
-            }
-            catch (HttpRequestException)
-            {
-                // Falha de rede → continua para a próxima tentativa
-                continue;
             }
             catch (JsonException)
             {
-                // JSON inválido → continua
                 continue;
             }
             catch (Exception)
             {
-                // Qualquer outro erro inesperado → continua
                 continue;
             }
         }
