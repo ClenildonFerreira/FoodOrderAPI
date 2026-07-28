@@ -1,9 +1,10 @@
 # FoodOrderAPI
 
-API de gestão de pedidos para restaurantes, desenvolvida em **.NET 10** com foco em regras de negócio reais de salão, cozinha e delivery.
+API de gestão de pedidos para restaurantes, desenvolvida em **.NET 10** com foco nas regras de negócio de operação de salão, cozinha e delivery.
 
-O projeto simula o fluxo operacional de um ERP gastronômico: cardápio, criação de pedidos, controle de status, histórico de alterações, autenticação JWT e importação de produtos.
+O projeto simula o fluxo comercial de um ERP gastronômico, incluindo cardápio, criação de pedidos, controle de status, histórico de alterações, autenticação JWT e importação de produtos.
 
+A ideia da aplicação surgiu após ver uma vaga em .NET para sistema de alimentação, exigindo boas práticas de desenvolvimento e regras de negócio reais.
 ---
 
 ## Tecnologias
@@ -31,14 +32,13 @@ O projeto simula o fluxo operacional de um ERP gastronômico: cardápio, criaç�
 - Importação de pratos via **TheMealDB**
 
 ### Pedidos
-- Criação de pedidos (Salão ou Delivery)
-- Listagem com paginação
-- Filtro por status e tipo
-- Consulta por ID
+- Criação de pedidos para salão e delivery
+- Listagem com paginação e filtros comerciais
+- Consulta e acompanhamento por ID
 - Atualização controlada de status
 - Histórico de mudanças de status
-- Resumo por status (dashboard)
-- Cálculo automático do total
+- Resumo por status para gestão de cozinha
+- Cálculo automático do total do pedido
 
 ### Qualidade
 - Validações de regras de negócio
@@ -229,6 +229,5 @@ Fluxo sugerido:
 
 ## Autor
 
-**José Clenildon Ferreira do Nascimento**  
-[LinkedIn](https://www.linkedin.com/in/clenildonferreira)  
-[GitHub](https://github.com/ClenildonFerreira)
+**Clenildon Ferreira**  
+[LinkedIn](https://www.linkedin.com/in/clenildonferreira)
