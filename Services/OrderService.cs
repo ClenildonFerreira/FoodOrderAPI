@@ -16,30 +16,10 @@ public class OrderService : IOrderService
 
     public async Task<OrderDto> CreateAsync(CreateOrderDto dto)
     {
-        // validações básicas
-        if (string.IsNullOrWhiteSpace(dto.CustomerName))
-            throw new ArgumentException("Nome do cliente é obrigatório.");
-
         if (dto.Items is null || !dto.Items.Any())
             throw new ArgumentException("O pedido deve conter pelo menos 1 item.");
 
-        if (dto.Items.Any(i => i.Quantity <= 0))
-            throw new ArgumentException("A quantidade de cada item deve ser maior que zero.");
-
-        // validaçao de messa para pedidos de salão 
-        if (dto.Type == OrderTypeDto.Table && string.IsNullOrWhiteSpace(dto.TableNumber))
-            throw new ArgumentException("Número da mesa é obrigatório para pedidos de salão.");
-
-        var order = new Order
-        {
-            CustomerName = dto.CustomerName.Trim(),
-            TableNumber = dto.TableNumber?.Trim(),
-            Type = (OrderType)dto.Type,
-            Status = OrderStatus.Received,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        decimal total = 0;
+        var items = new List<OrderItem>();
 
         foreach (var itemDto in dto.Items)
         {
@@ -50,24 +30,20 @@ public class OrderService : IOrderService
             if (!product.IsActive)
                 throw new ArgumentException($"O Produto {product.Name} está inativo e não pode ser adicionado ao pedido.");
 
-            var orderItem = new OrderItem
+            items.Add(new OrderItem
             {
                 ProductId = product.Id,
                 Quantity = itemDto.Quantity,
                 UnitPrice = product.Price
-            };
-
-            total += product.Price * itemDto.Quantity;
-            order.Items.Add(orderItem);
+            });
         }
 
-        order.Total = total;
-
-        order.StatusHistory.Add(new OrderStatusHistory
-        {
-            Status = OrderStatus.Received,
-            Notes = "Pedido criado"
-        });
+        var order = new Order(
+            dto.CustomerName,
+            dto.TableNumber,
+            (OrderType)dto.Type,
+            items
+        );
 
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -155,21 +131,7 @@ public class OrderService : IOrderService
         if (order is null) return null;
 
         var newStatus = (OrderStatus)dto.Status;
-
-        if (!OrderStatusTransition.CanTransition(order.Status, newStatus))
-        {
-            throw new InvalidOperationException(
-                OrderStatusTransition.GetErrorMessage(order.Status, newStatus)
-            );
-        }
-
-        order.Status = newStatus;
-
-        order.StatusHistory.Add(new OrderStatusHistory
-        {
-            Status = newStatus,
-            Notes = dto.Notes ?? $"Status alterado para {newStatus}"
-        });
+        order.ChangeStatus(newStatus, dto.Notes);
 
         await _context.SaveChangesAsync();
         return MapToDto(order);
