@@ -126,7 +126,18 @@ dotnet test
 }
 ```
 
-> Em produção, a chave JWT deve vir de **User Secrets** ou variável de ambiente, nunca commitada em texto puro.
+> **Aviso de Segurança**: A chave criptográfica JWT não é versionada no `appsettings.json`. 
+
+Para rodar o projeto localmente, configure a chave via **User Secrets** rodando os seguintes comandos no terminal:
+
+```bash
+dotnet user-secrets init
+
+dotnet user-secrets set "Jwt:Key" "coloque-aqui-sua-chave-super-secreta-com-mais-de-32-caracteres"
+```
+
+Em ambiente de produção (Docker/Linux), utilize **Variáveis de Ambiente**:
+`export Jwt__Key="sua-chave-aqui"`
 
 ---
 
