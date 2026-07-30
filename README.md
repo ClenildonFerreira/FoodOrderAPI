@@ -206,19 +206,29 @@ GET /api/v1/orders?status=Preparing
 
 ## Estrutura do Projeto
 
+O projeto segue os princípios de **Clean Architecture**, com separação clara de responsabilidades:
+
 ```
 FoodOrderAPI/
-├── Controllers/           # Endpoints da API
-├── DTOs/                  # Objetos de transferência
-├── Models/                # Entidades de domínio
-├── Services/              # Regras de negócio + Auth
-├── Middleware/            # Tratamento global de erros
-├── Data/                  # DbContext
-├── Migrations/            # Migrations do banco
-├── FoodOrderAPI.Tests/    # Testes unitários
-├── docs/
-│   └── postman/           # Collection do Postman
-└── Program.cs
+├── API/                              # Camada de Apresentação
+│   ├── Controllers/                  # Endpoints da API
+│   ├── Middleware/                   # Tratamento global de erros
+│   └── Program.cs
+├── Application/                      # Camada de Aplicação (Casos de Uso)
+│   ├── DTOs/                         # Objetos de transferência de dados
+│   ├── Interfaces/                   # Contratos (Services e Repositories)
+│   └── Services/                     # Lógica de aplicação
+├── Domain/                           # Camada de Domínio
+│   ├── Entities/                     # Entidades de negócio
+│   └── Services/                     # Regras de domínio (ex: transição de status)
+├── Infrastructure/                   # Camada de Infraestrutura
+│   ├── Data/
+│   │   ├── Repositories/             # Implementação dos repositórios
+│   │   └── AppDbContext.cs           # Contexto do Entity Framework
+│   └── Migrations/                   # Migrations do banco
+├── FoodOrderAPI.Tests/               # Testes unitários e de integração
+└── docs/
+    └── postman/                      # Collection do Postman
 ```
 
 ---
