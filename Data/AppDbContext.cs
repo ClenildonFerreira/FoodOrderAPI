@@ -29,5 +29,21 @@ public class AppDbContext : DbContext
                 .HasOne(h => h.Order)
                 .WithMany(o => o.StatusHistory)
                 .HasForeignKey(h => h.OrderId);
-        }
+
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasIndex(o => new {o.Status, o.CreatedAt})
+                    .HasDatabaseName("IX_Orders_Status_CreatedAt");
+
+                entity.HasIndex(o => new {o.Type, o.CreatedAt})
+                    .HasDatabaseName("IX_Orders_Type_CreatedAt");
+
+                entity.HasIndex(o   => o.CreatedAt)
+                    .HasDatabaseName("IX_Order_CreatedAt");
+            });
+
+            modelBuilder.Entity<Product>()
+                .HasIndex(p => p.IsActive)
+                .HasDatabaseName("IX_Product_IsActive");
+    }
 }
