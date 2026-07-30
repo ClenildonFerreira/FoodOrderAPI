@@ -3,6 +3,7 @@ using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 using FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
 using FoodOrderAPI.Application.Orders.Queries.GetOrderById;
+using FoodOrderAPI.Application.Orders.Queries.GetOrders;
 using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -18,18 +19,22 @@ public class OrdersController : ControllerBase
     private readonly CreateOrderHandler _createOrderHandler;
     private readonly UpdateOrderStatusHandler _updateOrderStatusHandler;
     private readonly GetOrderByIdHandler _getOrderByIdHandler;
+    private readonly GetOrdersHandler _getOrdersHandler;
+
 
     public OrdersController(
             IOrderService orderService, 
             CreateOrderHandler createOrderHandler,
             UpdateOrderStatusHandler updateOrderStatusHandler,
-            GetOrderByIdHandler getOrderByIdHandler
+            GetOrderByIdHandler getOrderByIdHandler,
+            GetOrdersHandler getOrdersHandler
             )
     {
         _orderService = orderService;
         _createOrderHandler = createOrderHandler;
         _updateOrderStatusHandler = updateOrderStatusHandler;
         _getOrderByIdHandler = getOrderByIdHandler;
+        _getOrdersHandler = getOrdersHandler;
     }
 
     [HttpGet]
@@ -39,7 +44,15 @@ public class OrdersController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await _orderService.GetAllAsync(status, type, page, pageSize);
+        var query = new GetOrdersQuery
+        {
+            Status = status,
+            Type = type,
+            Page = page,
+            PageSize = pageSize
+        };
+
+        var result = await _getOrdersHandler.Handle(query);
         return Ok(result);
     }
 
