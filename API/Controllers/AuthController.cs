@@ -2,7 +2,7 @@ using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FoodOrderAPI.Controllers;
+namespace FoodOrderAPI.API.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]

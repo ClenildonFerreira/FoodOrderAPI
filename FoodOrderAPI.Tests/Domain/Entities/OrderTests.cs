@@ -1,7 +1,7 @@
 using FoodOrderAPI.Domain.Entities;
 using FluentAssertions;
 
-namespace FoodOrderAPI.Tests.Models;
+namespace FoodOrderAPI.Tests.Domain.Entities;
 
 public class OrderTests
 {

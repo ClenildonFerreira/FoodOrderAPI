@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 
-namespace FoodOrderAPI.Middleware;
+namespace FoodOrderAPI.API.Middleware;
 
 public class ExceptionHandlingMiddleware
 {

@@ -3,7 +3,7 @@ using FoodOrderAPI.Application.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 
-namespace FoodOrderAPI.Tests.Services;
+namespace FoodOrderAPI.Tests.Application.Services;
 
 public class AuthServiceTests
 {

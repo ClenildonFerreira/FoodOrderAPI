@@ -4,7 +4,7 @@ using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
-namespace FoodOrderAPI.Controllers;
+namespace FoodOrderAPI.API.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]

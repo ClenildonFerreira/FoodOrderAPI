@@ -1,10 +1,10 @@
-using FoodOrderAPI.Infrastructure.Data;
-using FoodOrderAPI.Domain.Entities;
 using FoodOrderAPI.Application.Services;
+using FoodOrderAPI.Domain.Entities;
+using FoodOrderAPI.Infrastructure.Data;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 
-namespace FoodOrderAPI.Tests.Services;
+namespace FoodOrderAPI.Tests.Application.Services;
 
 public class ProductServiceTests
 {
@@ -67,7 +67,7 @@ public class ProductServiceTests
         result.Should().BeNull();
     }
 
-   [Fact]
+    [Fact]
     public async Task ImportFromTheMealDBAsync_ShouldImportProducts()
     {
         var context = CreateInMemoryContext();
@@ -120,7 +120,7 @@ public class ProductServiceTests
     }
 }
 
-public class FakeHttpClientFactory : IHttpClientFactory
+file class FakeHttpClientFactory : IHttpClientFactory
 {
     public HttpClient CreateClient(string name = "")
     {
@@ -132,12 +132,10 @@ public class FakeHttpClientFactory : IHttpClientFactory
     }
 }
 
-
-
-public class FakeHttpMessageHandler : HttpMessageHandler
+file class FakeHttpMessageHandler : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, 
+        HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         var json = """
@@ -161,5 +159,4 @@ public class FakeHttpMessageHandler : HttpMessageHandler
 
         return Task.FromResult(response);
     }
-
 }

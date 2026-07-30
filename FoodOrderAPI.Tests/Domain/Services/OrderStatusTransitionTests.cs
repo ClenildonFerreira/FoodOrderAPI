@@ -2,7 +2,7 @@ using FoodOrderAPI.Domain.Entities;
 using FoodOrderAPI.Domain.Services;
 using FluentAssertions;
 
-namespace FoodOrderAPI.Tests.Services;
+namespace FoodOrderAPI.Tests.Domain.Services;
 
 public class OrderStatusTransitionTests
 {

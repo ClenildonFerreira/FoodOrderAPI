@@ -1,11 +1,11 @@
-using FoodOrderAPI.Infrastructure.Data;
 using FoodOrderAPI.Application.DTOs;
-using FoodOrderAPI.Domain.Entities;
 using FoodOrderAPI.Application.Services;
+using FoodOrderAPI.Domain.Entities;
+using FoodOrderAPI.Infrastructure.Data;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 
-namespace FoodOrderAPI.Tests.Services;
+namespace FoodOrderAPI.Tests.Application.Services;
 
 public class OrderServiceTests
 {
@@ -158,7 +158,6 @@ public class OrderServiceTests
         var context = CreateInMemoryContext();
         var service = new OrderService(context);
 
-        // Cria um pedido primeiro
         var createDto = new CreateOrderDto
         {
             CustomerName = "Carlos",
@@ -176,10 +175,10 @@ public class OrderServiceTests
 
         var result = await service.UpdateStatusAsync(order.Id, updateDto);
 
-       
-        result!.StatusHistory.Should().HaveCount(2);
         result.Should().NotBeNull();
-        result.StatusHistory.Last().Status.Should().Be("Preparing");    }
+        result!.StatusHistory.Should().HaveCount(2);
+        result.StatusHistory.Last().Status.Should().Be("Preparing");
+    }
 
     [Fact]
     public async Task UpdateStatusAsync_ShouldThrow_WhenTransitionIsInvalid()
@@ -253,7 +252,6 @@ public class OrderServiceTests
         result.Should().BeNull();
     }
 
-    
     [Fact]
     public async Task GetAllAsync_ShouldReturnOrders()
     {

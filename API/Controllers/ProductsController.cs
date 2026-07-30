@@ -3,7 +3,7 @@ using FoodOrderAPI.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FoodOrderAPI.Controllers;
+namespace FoodOrderAPI.API.Controllers;
 
 [Authorize]
 [ApiController]
