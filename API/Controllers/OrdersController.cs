@@ -1,6 +1,7 @@
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
+using FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
 using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -14,12 +15,19 @@ public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
     private readonly CreateOrderHandler _createOrderHandler;
+    private readonly UpdateOrderStatusHandler _updateOrderStatusHandler;
 
 
-    public OrdersController(IOrderService orderService, CreateOrderHandler createOrderHandler)
+
+    public OrdersController(
+            IOrderService orderService, 
+            CreateOrderHandler createOrderHandler,
+            UpdateOrderStatusHandler updateOrderStatusHandler
+            )
     {
         _orderService = orderService;
         _createOrderHandler = createOrderHandler;
+        _updateOrderStatusHandler = updateOrderStatusHandler;
     }
 
     [HttpGet]
@@ -56,9 +64,10 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPatch("{id}/status")]
-    public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
+    public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusCommand command)
     {
-        var order = await _orderService.UpdateStatusAsync(id, dto);
+        command.OrderId = id;
+        var order = await _updateOrderStatusHandler.Handle(command);
         if (order is null) return NotFound();
         return Ok(order);
     }
