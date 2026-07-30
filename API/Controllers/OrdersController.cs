@@ -2,6 +2,7 @@ using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 using FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
+using FoodOrderAPI.Application.Orders.Queries.GetOrderById;
 using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -16,18 +17,19 @@ public class OrdersController : ControllerBase
     private readonly IOrderService _orderService;
     private readonly CreateOrderHandler _createOrderHandler;
     private readonly UpdateOrderStatusHandler _updateOrderStatusHandler;
-
-
+    private readonly GetOrderByIdHandler _getOrderByIdHandler;
 
     public OrdersController(
             IOrderService orderService, 
             CreateOrderHandler createOrderHandler,
-            UpdateOrderStatusHandler updateOrderStatusHandler
+            UpdateOrderStatusHandler updateOrderStatusHandler,
+            GetOrderByIdHandler getOrderByIdHandler
             )
     {
         _orderService = orderService;
         _createOrderHandler = createOrderHandler;
         _updateOrderStatusHandler = updateOrderStatusHandler;
+        _getOrderByIdHandler = getOrderByIdHandler;
     }
 
     [HttpGet]
@@ -51,7 +53,7 @@ public class OrdersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<OrderDto>> GetById(int id)
     {
-        var order = await _orderService.GetByIdAsync(id);
+        var order = await _getOrderByIdHandler.Handle(new GetOrderByIdQuery(id));
         if (order is null) return NotFound();
         return Ok(order);
     }
