@@ -1,5 +1,6 @@
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
+using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +13,13 @@ namespace FoodOrderAPI.API.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly CreateOrderHandler _createOrderHandler;
 
-    public OrdersController(IOrderService orderService)
+
+    public OrdersController(IOrderService orderService, CreateOrderHandler createOrderHandler)
     {
         _orderService = orderService;
+        _createOrderHandler = createOrderHandler;
     }
 
     [HttpGet]
@@ -45,9 +49,9 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<OrderDto>> Create([FromBody] CreateOrderDto dto)
+    public async Task<ActionResult<OrderDto>> Create([FromBody] CreateOrderCommand command)
     {
-        var order = await _orderService.CreateAsync(dto);
+        var order = await _createOrderHandler.Handle(command);
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
     }
 
