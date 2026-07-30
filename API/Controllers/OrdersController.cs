@@ -1,5 +1,9 @@
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
+using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
+using FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
+using FoodOrderAPI.Application.Orders.Queries.GetOrderById;
+using FoodOrderAPI.Application.Orders.Queries.GetOrders;
 using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +16,25 @@ namespace FoodOrderAPI.API.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly CreateOrderHandler _createOrderHandler;
+    private readonly UpdateOrderStatusHandler _updateOrderStatusHandler;
+    private readonly GetOrderByIdHandler _getOrderByIdHandler;
+    private readonly GetOrdersHandler _getOrdersHandler;
 
-    public OrdersController(IOrderService orderService)
+
+    public OrdersController(
+            IOrderService orderService, 
+            CreateOrderHandler createOrderHandler,
+            UpdateOrderStatusHandler updateOrderStatusHandler,
+            GetOrderByIdHandler getOrderByIdHandler,
+            GetOrdersHandler getOrdersHandler
+            )
     {
         _orderService = orderService;
+        _createOrderHandler = createOrderHandler;
+        _updateOrderStatusHandler = updateOrderStatusHandler;
+        _getOrderByIdHandler = getOrderByIdHandler;
+        _getOrdersHandler = getOrdersHandler;
     }
 
     [HttpGet]
@@ -25,7 +44,15 @@ public class OrdersController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await _orderService.GetAllAsync(status, type, page, pageSize);
+        var query = new GetOrdersQuery
+        {
+            Status = status,
+            Type = type,
+            Page = page,
+            PageSize = pageSize
+        };
+
+        var result = await _getOrdersHandler.Handle(query);
         return Ok(result);
     }
 
@@ -39,22 +66,23 @@ public class OrdersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<OrderDto>> GetById(int id)
     {
-        var order = await _orderService.GetByIdAsync(id);
+        var order = await _getOrderByIdHandler.Handle(new GetOrderByIdQuery(id));
         if (order is null) return NotFound();
         return Ok(order);
     }
 
     [HttpPost]
-    public async Task<ActionResult<OrderDto>> Create([FromBody] CreateOrderDto dto)
+    public async Task<ActionResult<OrderDto>> Create([FromBody] CreateOrderCommand command)
     {
-        var order = await _orderService.CreateAsync(dto);
+        var order = await _createOrderHandler.Handle(command);
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
     }
 
     [HttpPatch("{id}/status")]
-    public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
+    public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusCommand command)
     {
-        var order = await _orderService.UpdateStatusAsync(id, dto);
+        command.OrderId = id;
+        var order = await _updateOrderStatusHandler.Handle(command);
         if (order is null) return NotFound();
         return Ok(order);
     }
