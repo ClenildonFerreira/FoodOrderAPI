@@ -68,7 +68,7 @@ Desktop.ini
 appsettings.Development.json
 
 ## Code Coverage
-coverage-report/
+coveragereport/
 TestResults/
 *.cobertura.xml
 coverage.json

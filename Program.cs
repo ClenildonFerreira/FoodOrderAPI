@@ -43,7 +43,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    throw new InvalidOperationException("A chave JWT não está configurada. Verifique o User Secrets ou as Variáveis de Ambiente.");
+    throw new InvalidOperationException("A chave JWT (Jwt:Key) não está configurada. Verifique o User Secrets (desenvolvimento) ou as Variáveis de Ambiente (produção).");
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -92,5 +92,6 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.
-();
+app.Run();
+
+public partial class Program { }
