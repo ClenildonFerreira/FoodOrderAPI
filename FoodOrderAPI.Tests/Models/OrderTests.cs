@@ -1,4 +1,4 @@
-using FoodOrderAPI.Models;
+using FoodOrderAPI.Domain.Entities;
 using FluentAssertions;
 
 namespace FoodOrderAPI.Tests.Models;

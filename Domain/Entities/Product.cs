@@ -1,4 +1,4 @@
-namespace FoodOrderAPI.Models
+namespace FoodOrderAPI.Domain.Entities
 {
     public class Product
     {

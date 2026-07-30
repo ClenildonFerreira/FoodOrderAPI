@@ -1,7 +1,8 @@
 using System.Text;
-using FoodOrderAPI.Data;
+using FoodOrderAPI.Infrastructure.Data;
 using FoodOrderAPI.Middleware;
-using FoodOrderAPI.Services;
+using FoodOrderAPI.Application.Services;
+using FoodOrderAPI.Application.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

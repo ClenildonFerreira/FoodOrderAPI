@@ -1,10 +1,11 @@
-using FoodOrderAPI.Data;
-using FoodOrderAPI.DTOs;
-using FoodOrderAPI.Models;
+using FoodOrderAPI.Infrastructure.Data;
+using FoodOrderAPI.Application.DTOs;
+using FoodOrderAPI.Application.Interfaces;
+using FoodOrderAPI.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
-namespace FoodOrderAPI.Services;
+namespace FoodOrderAPI.Application.Services;
 
 public class ProductService : IProductService
 {

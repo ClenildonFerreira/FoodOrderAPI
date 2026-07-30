@@ -1,8 +1,8 @@
-using FoodOrderAPI.DTOs;
-using FoodOrderAPI.Models;
+using FoodOrderAPI.Application.DTOs;
+using FoodOrderAPI.Domain.Entities;
 
 
-namespace FoodOrderAPI.Services
+namespace FoodOrderAPI.Application.Interfaces
 {
     public interface IOrderService
     {

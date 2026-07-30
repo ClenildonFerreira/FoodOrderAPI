@@ -1,5 +1,5 @@
-using FoodOrderAPI.Models;
-using FoodOrderAPI.Services;
+using FoodOrderAPI.Domain.Entities;
+using FoodOrderAPI.Domain.Services;
 using FluentAssertions;
 
 namespace FoodOrderAPI.Tests.Services;

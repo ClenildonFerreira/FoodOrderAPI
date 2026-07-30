@@ -1,10 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using FoodOrderAPI.DTOs;
+using FoodOrderAPI.Application.DTOs;
+using FoodOrderAPI.Application.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FoodOrderAPI.Services;
+namespace FoodOrderAPI.Application.Services;
 
 public class AuthService : IAuthService
 {

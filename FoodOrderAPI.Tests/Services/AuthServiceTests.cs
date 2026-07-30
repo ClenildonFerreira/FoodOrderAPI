@@ -1,5 +1,5 @@
-using FoodOrderAPI.DTOs;
-using FoodOrderAPI.Services;
+using FoodOrderAPI.Application.DTOs;
+using FoodOrderAPI.Application.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 

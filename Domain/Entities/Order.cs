@@ -1,6 +1,6 @@
-using FoodOrderAPI.Services;
+using FoodOrderAPI.Domain.Services;
 
-namespace FoodOrderAPI.Models;
+namespace FoodOrderAPI.Domain.Entities;
 
 public class Order
 {

@@ -1,6 +1,6 @@
-using FoodOrderAPI.DTOs;
-using FoodOrderAPI.Services;
-using FoodOrderAPI.Models;
+using FoodOrderAPI.Application.DTOs;
+using FoodOrderAPI.Application.Interfaces;
+using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 

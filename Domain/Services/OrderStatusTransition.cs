@@ -1,6 +1,6 @@
-using FoodOrderAPI.Models;
+using FoodOrderAPI.Domain.Entities;
 
-namespace FoodOrderAPI.Services;
+namespace FoodOrderAPI.Domain.Services;
 
 public static class OrderStatusTransition
 {

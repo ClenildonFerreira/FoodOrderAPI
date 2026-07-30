@@ -1,7 +1,7 @@
-using FoodOrderAPI.Models;
+using FoodOrderAPI.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace FoodOrderAPI.Data;
+namespace FoodOrderAPI.Infrastructure.Data;
 
 public class AppDbContext : DbContext
 {

@@ -1,4 +1,4 @@
-namespace FoodOrderAPI.DTOs;
+namespace FoodOrderAPI.Application.DTOs;
 
 public class OrderSummaryDto
 {

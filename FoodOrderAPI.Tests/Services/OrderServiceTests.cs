@@ -1,7 +1,7 @@
-using FoodOrderAPI.Data;
-using FoodOrderAPI.DTOs;
-using FoodOrderAPI.Models;
-using FoodOrderAPI.Services;
+using FoodOrderAPI.Infrastructure.Data;
+using FoodOrderAPI.Application.DTOs;
+using FoodOrderAPI.Domain.Entities;
+using FoodOrderAPI.Application.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 
