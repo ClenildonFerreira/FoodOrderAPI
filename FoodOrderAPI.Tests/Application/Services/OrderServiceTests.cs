@@ -2,6 +2,7 @@ using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Services;
 using FoodOrderAPI.Domain.Entities;
 using FoodOrderAPI.Infrastructure.Data;
+using FoodOrderAPI.Infrastructure.Data.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,7 @@ namespace FoodOrderAPI.Tests.Application.Services;
 
 public class OrderServiceTests
 {
-    private AppDbContext CreateInMemoryContext()
+    private OrderService CreateService()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -24,13 +25,15 @@ public class OrderServiceTests
         );
         context.SaveChanges();
 
-        return context;
+        var orderRepository = new OrderRepository(context);
+        var productRepository = new ProductRepository(context);
+        return new OrderService(orderRepository, productRepository);
     }
 
     [Fact]
     public async Task CreateAsync_ShouldThrow_WhenCustomerNameIsEmpty()
     {
-        var service = new OrderService(CreateInMemoryContext());
+        var service = CreateService();
 
         var dto = new CreateOrderDto
         {
@@ -49,7 +52,7 @@ public class OrderServiceTests
     [Fact]
     public async Task CreateAsync_ShouldThrow_WhenNoItems()
     {
-        var service = new OrderService(CreateInMemoryContext());
+        var service = CreateService();
 
         var dto = new CreateOrderDto
         {
@@ -68,7 +71,7 @@ public class OrderServiceTests
     [Fact]
     public async Task CreateAsync_ShouldThrow_WhenQuantityIsZero()
     {
-        var service = new OrderService(CreateInMemoryContext());
+        var service = CreateService();
 
         var dto = new CreateOrderDto
         {
@@ -87,7 +90,7 @@ public class OrderServiceTests
     [Fact]
     public async Task CreateAsync_ShouldThrow_WhenTableOrderWithoutTableNumber()
     {
-        var service = new OrderService(CreateInMemoryContext());
+        var service = CreateService();
 
         var dto = new CreateOrderDto
         {
@@ -106,7 +109,7 @@ public class OrderServiceTests
     [Fact]
     public async Task CreateAsync_ShouldThrow_WhenProductIsInactive()
     {
-        var service = new OrderService(CreateInMemoryContext());
+        var service = CreateService();
 
         var dto = new CreateOrderDto
         {
@@ -124,8 +127,7 @@ public class OrderServiceTests
     [Fact]
     public async Task CreateAsync_ShouldCreateOrder_WhenDataIsValid()
     {
-        var context = CreateInMemoryContext();
-        var service = new OrderService(context);
+        var service = CreateService();
 
         var dto = new CreateOrderDto
         {
@@ -155,8 +157,7 @@ public class OrderServiceTests
     [Fact]
     public async Task UpdateStatusAsync_ShouldUpdate_WhenTransitionIsValid()
     {
-        var context = CreateInMemoryContext();
-        var service = new OrderService(context);
+        var service = CreateService();
 
         var createDto = new CreateOrderDto
         {
@@ -183,8 +184,7 @@ public class OrderServiceTests
     [Fact]
     public async Task UpdateStatusAsync_ShouldThrow_WhenTransitionIsInvalid()
     {
-        var context = CreateInMemoryContext();
-        var service = new OrderService(context);
+        var service = CreateService();
 
         var createDto = new CreateOrderDto
         {
@@ -209,7 +209,7 @@ public class OrderServiceTests
     [Fact]
     public async Task UpdateStatusAsync_ShouldReturnNull_WhenOrderNotFound()
     {
-        var service = new OrderService(CreateInMemoryContext());
+        var service = CreateService();
 
         var updateDto = new UpdateOrderStatusDto
         {
@@ -224,8 +224,7 @@ public class OrderServiceTests
     [Fact]
     public async Task GetByIdAsync_ShouldReturnOrder_WhenExists()
     {
-        var context = CreateInMemoryContext();
-        var service = new OrderService(context);
+        var service = CreateService();
 
         var createDto = new CreateOrderDto
         {
@@ -245,7 +244,7 @@ public class OrderServiceTests
     [Fact]
     public async Task GetByIdAsync_ShouldReturnNull_WhenNotExists()
     {
-        var service = new OrderService(CreateInMemoryContext());
+        var service = CreateService();
 
         var result = await service.GetByIdAsync(999);
 
@@ -255,8 +254,7 @@ public class OrderServiceTests
     [Fact]
     public async Task GetAllAsync_ShouldReturnOrders()
     {
-        var context = CreateInMemoryContext();
-        var service = new OrderService(context);
+        var service = CreateService();
 
         var dto = new CreateOrderDto
         {
@@ -276,8 +274,7 @@ public class OrderServiceTests
     [Fact]
     public async Task GetAllAsync_ShouldFilterByStatus()
     {
-        var context = CreateInMemoryContext();
-        var service = new OrderService(context);
+        var service = CreateService();
 
         var dto = new CreateOrderDto
         {
@@ -303,8 +300,7 @@ public class OrderServiceTests
     [Fact]
     public async Task GetSummaryAsync_ShouldReturnCounts()
     {
-        var context = CreateInMemoryContext();
-        var service = new OrderService(context);
+        var service = CreateService();
 
         var dto = new CreateOrderDto
         {

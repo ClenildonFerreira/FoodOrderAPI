@@ -1,20 +1,18 @@
-using FoodOrderAPI.Infrastructure.Data;
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace FoodOrderAPI.Application.Services;
 
 public class ProductService : IProductService
 {
-    private readonly AppDbContext _context;
+    private readonly IProductRepository _productRepository;
     private readonly HttpClient _httpClient;
 
-    public ProductService(AppDbContext context, IHttpClientFactory httpClientFactory)
+    public ProductService(IProductRepository productRepository, IHttpClientFactory httpClientFactory)
     {
-        _context = context;
+        _productRepository = productRepository;
         _httpClient = httpClientFactory.CreateClient();
     }
 
@@ -24,15 +22,11 @@ public class ProductService : IProductService
         if (pageSize < 1) pageSize = 10;
         if (pageSize > 50) pageSize = 50;
 
-        var query = _context.Products.Where(p => p.IsActive);
+        var (products, totalItems) = await _productRepository.GetActivePagedAsync(page, pageSize);
 
-        var totalItems = await query.CountAsync();
-
-        var products = await query
-            .OrderBy(p => p.Name)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(p => new ProductDto
+        return new PagedResultDto<ProductDto>
+        {
+            Items = products.Select(p => new ProductDto
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -40,12 +34,7 @@ public class ProductService : IProductService
                 Price = p.Price,
                 ImageUrl = p.ImageUrl,
                 Category = p.Category
-            })
-            .ToListAsync();
-
-        return new PagedResultDto<ProductDto>
-        {
-            Items = products,
+            }).ToList(),
             Page = page,
             PageSize = pageSize,
             TotalItems = totalItems
@@ -54,7 +43,7 @@ public class ProductService : IProductService
 
     public async Task<ProductDto?> GetByIdAsync(int id)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _productRepository.GetByIdAsync(id);
         if (product is null || !product.IsActive) return null;
 
         return new ProductDto
@@ -70,8 +59,8 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(Product product)
     {
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
+        await _productRepository.AddAsync(product);
+        await _productRepository.SaveChangesAsync();
         return product;
     }
 
@@ -81,7 +70,7 @@ public class ProductService : IProductService
         if (quantity > 100) quantity = 100;
 
         var importedCount = 0;
-        using var semaphore = new SemaphoreSlim(5); 
+        using var semaphore = new SemaphoreSlim(5);
 
         var tasks = Enumerable.Range(0, quantity).Select(async _ =>
         {
@@ -90,11 +79,7 @@ public class ProductService : IProductService
             {
                 return await _httpClient.GetStringAsync("https://www.themealdb.com/api/json/v1/1/random.php");
             }
-            catch (HttpRequestException)
-            {
-                return null;
-            }
-            catch (Exception)
+            catch
             {
                 return null;
             }
@@ -105,10 +90,8 @@ public class ProductService : IProductService
         }).ToList();
 
         var responses = await Task.WhenAll(tasks);
-        var existingExternalIds = await _context.Products
-            .Where(p => p.ExternalId != null)
-            .Select(p => p.ExternalId!)
-            .ToHashSetAsync();
+        var existingExternalIds = await _productRepository.GetExistingExternalIdsAsync();
+        var productsToAdd = new List<Product>();
 
         foreach (var response in responses)
         {
@@ -126,10 +109,7 @@ public class ProductService : IProductService
                 var meal = meals[0];
                 var externalId = meal.GetProperty("idMeal").GetString();
 
-                if (string.IsNullOrWhiteSpace(externalId))
-                    continue;
-
-                if (existingExternalIds.Contains(externalId))
+                if (string.IsNullOrWhiteSpace(externalId) || existingExternalIds.Contains(externalId))
                     continue;
 
                 var instructions = meal.GetProperty("strInstructions").GetString() ?? "";
@@ -148,22 +128,21 @@ public class ProductService : IProductService
                     IsActive = true
                 };
 
-                _context.Products.Add(product);
-                existingExternalIds.Add(externalId); // Registra no hashset temporário da execução
+                productsToAdd.Add(product);
+                existingExternalIds.Add(externalId);
                 importedCount++;
             }
-            catch (JsonException)
-            {
-                continue;
-            }
-            catch (Exception)
+            catch
             {
                 continue;
             }
         }
 
-        if (importedCount > 0)
-            await _context.SaveChangesAsync();
+        if (productsToAdd.Any())
+        {
+            await _productRepository.AddRangeAsync(productsToAdd);
+            await _productRepository.SaveChangesAsync();
+        }
 
         return importedCount;
     }

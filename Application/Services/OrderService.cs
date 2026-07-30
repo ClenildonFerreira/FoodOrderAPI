@@ -1,18 +1,18 @@
-using FoodOrderAPI.Infrastructure.Data;
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace FoodOrderAPI.Application.Services;
 
 public class OrderService : IOrderService
 {
-    private readonly AppDbContext _context;
+    private readonly IOrderRepository _orderRepository;
+    private readonly IProductRepository _productRepository;
 
-    public OrderService(AppDbContext context)
+    public OrderService(IOrderRepository orderRepository, IProductRepository productRepository)
     {
-        _context = context;
+        _orderRepository = orderRepository;
+        _productRepository = productRepository;
     }
 
     public async Task<OrderDto> CreateAsync(CreateOrderDto dto)
@@ -24,10 +24,11 @@ public class OrderService : IOrderService
 
         foreach (var itemDto in dto.Items)
         {
-            var product = await _context.Products.FindAsync(itemDto.ProductId);
-            
+            var product = await _productRepository.GetByIdAsync(itemDto.ProductId);
+
             if (product is null)
                 throw new ArgumentException($"Produto com ID {itemDto.ProductId} não encontrado.");
+
             if (!product.IsActive)
                 throw new ArgumentException($"O Produto {product.Name} está inativo e não pode ser adicionado ao pedido.");
 
@@ -46,23 +47,16 @@ public class OrderService : IOrderService
             items
         );
 
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
+        await _orderRepository.AddAsync(order);
+        await _orderRepository.SaveChangesAsync();
 
         return await GetByIdAsync(order.Id) ?? throw new Exception("Erro ao criar pedido");
     }
 
     public async Task<OrderDto?> GetByIdAsync(int id)
     {
-        var order = await _context.Orders
-            .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
-            .Include(o => o.StatusHistory)
-            .FirstOrDefaultAsync(o => o.Id == id);
-
-        if (order is null) return null;
-
-        return MapToDto(order);
+        var order = await _orderRepository.GetByIdWithDetailsAsync(id);
+        return order is null ? null : MapToDto(order);
     }
 
     public async Task<PagedResultDto<OrderDto>> GetAllAsync(
@@ -75,25 +69,7 @@ public class OrderService : IOrderService
         if (pageSize < 1) pageSize = 10;
         if (pageSize > 50) pageSize = 50;
 
-        var query = _context.Orders
-            .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
-            .Include(o => o.StatusHistory)
-            .AsQueryable();
-
-        if (status.HasValue)
-            query = query.Where(o => o.Status == status.Value);
-
-        if (type.HasValue)
-            query = query.Where(o => o.Type == type.Value);
-
-        var totalItems = await query.CountAsync();
-
-        var orders = await query
-            .OrderByDescending(o => o.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var (orders, totalItems) = await _orderRepository.GetPagedAsync(status, type, page, pageSize);
 
         return new PagedResultDto<OrderDto>
         {
@@ -106,35 +82,27 @@ public class OrderService : IOrderService
 
     public async Task<OrderSummaryDto> GetSummaryAsync()
     {
-        var orders = await _context.Orders
-            .GroupBy(o => o.Status)
-            .Select(g => new { Status = g.Key, Count = g.Count() })
-            .ToListAsync();
+        var summary = await _orderRepository.GetSummaryAsync();
 
         return new OrderSummaryDto
         {
-            Received = orders.FirstOrDefault(x => x.Status == OrderStatus.Received)?.Count ?? 0,
-            Preparing = orders.FirstOrDefault(x => x.Status == OrderStatus.Preparing)?.Count ?? 0,
-            Ready = orders.FirstOrDefault(x => x.Status == OrderStatus.Ready)?.Count ?? 0,
-            Delivered = orders.FirstOrDefault(x => x.Status == OrderStatus.Delivered)?.Count ?? 0,
-            Cancelled = orders.FirstOrDefault(x => x.Status == OrderStatus.Cancelled)?.Count ?? 0
+            Received = summary.GetValueOrDefault(OrderStatus.Received),
+            Preparing = summary.GetValueOrDefault(OrderStatus.Preparing),
+            Ready = summary.GetValueOrDefault(OrderStatus.Ready),
+            Delivered = summary.GetValueOrDefault(OrderStatus.Delivered),
+            Cancelled = summary.GetValueOrDefault(OrderStatus.Cancelled)
         };
     }
 
     public async Task<OrderDto?> UpdateStatusAsync(int id, UpdateOrderStatusDto dto)
     {
-        var order = await _context.Orders
-            .Include(o => o.Items)
-            .ThenInclude(i => i.Product)
-            .Include(o => o.StatusHistory)
-            .FirstOrDefaultAsync(o => o.Id == id);
-
+        var order = await _orderRepository.GetByIdWithDetailsAsync(id);
         if (order is null) return null;
 
         var newStatus = (OrderStatus)dto.Status;
         order.ChangeStatus(newStatus, dto.Notes);
 
-        await _context.SaveChangesAsync();
+        await _orderRepository.SaveChangesAsync();
         return MapToDto(order);
     }
 
@@ -155,13 +123,14 @@ public class OrderService : IOrderService
                 ProductName = i.Product.Name,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice
-            }).ToList(), 
+            }).ToList(),
             StatusHistory = order.StatusHistory
-            .OrderBy(h => h.ChangedAt)
-            .Select(h => new OrderStatusHistoryDto {
-                 Status = h.Status.ToString(),
-                 ChangedAt = h.ChangedAt,
-                 Notes = h.Notes
+                .OrderBy(h => h.ChangedAt)
+                .Select(h => new OrderStatusHistoryDto
+                {
+                    Status = h.Status.ToString(),
+                    ChangedAt = h.ChangedAt,
+                    Notes = h.Notes
                 }).ToList()
         };
     }

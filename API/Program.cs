@@ -1,5 +1,6 @@
 using System.Text;
 using FoodOrderAPI.Infrastructure.Data;
+using FoodOrderAPI.Infrastructure.Data.Repositories;
 using FoodOrderAPI.API.Middleware;
 using FoodOrderAPI.Application.Services;
 using FoodOrderAPI.Application.Interfaces;
@@ -76,6 +77,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

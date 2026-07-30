@@ -1,6 +1,7 @@
 using FoodOrderAPI.Application.Services;
 using FoodOrderAPI.Domain.Entities;
 using FoodOrderAPI.Infrastructure.Data;
+using FoodOrderAPI.Infrastructure.Data.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +9,7 @@ namespace FoodOrderAPI.Tests.Application.Services;
 
 public class ProductServiceTests
 {
-    private AppDbContext CreateInMemoryContext()
+    private (ProductService Service, AppDbContext Context) CreateService()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -23,20 +24,16 @@ public class ProductServiceTests
         );
         context.SaveChanges();
 
-        return context;
-    }
+        var productRepository = new ProductRepository(context);
+        var service = new ProductService(productRepository, new FakeHttpClientFactory());
 
-    private ProductService CreateService(AppDbContext context)
-    {
-        var httpClientFactory = new FakeHttpClientFactory();
-        return new ProductService(context, httpClientFactory);
+        return (service, context);
     }
 
     [Fact]
     public async Task GetAllAsync_ShouldReturnOnlyActiveProducts()
     {
-        var context = CreateInMemoryContext();
-        var service = CreateService(context);
+        var (service, _) = CreateService();
 
         var result = await service.GetAllAsync();
         result.Items.Should().HaveCount(2);
@@ -46,8 +43,7 @@ public class ProductServiceTests
     [Fact]
     public async Task GetByIdAsync_ShouldReturnProduct_WhenExistsAndActive()
     {
-        var context = CreateInMemoryContext();
-        var service = CreateService(context);
+        var (service, _) = CreateService();
 
         var result = await service.GetByIdAsync(1);
 
@@ -59,8 +55,7 @@ public class ProductServiceTests
     [Fact]
     public async Task GetByIdAsync_ShouldReturnNull_WhenProductIsInactive()
     {
-        var context = CreateInMemoryContext();
-        var service = CreateService(context);
+        var (service, _) = CreateService();
 
         var result = await service.GetByIdAsync(3);
 
@@ -70,8 +65,7 @@ public class ProductServiceTests
     [Fact]
     public async Task ImportFromTheMealDBAsync_ShouldImportProducts()
     {
-        var context = CreateInMemoryContext();
-        var service = CreateService(context);
+        var (service, context) = CreateService();
 
         var imported = await service.ImportFromTheMealDBAsync(2);
 
@@ -88,8 +82,7 @@ public class ProductServiceTests
     [Fact]
     public async Task GetByIdAsync_ShouldReturnNull_WhenNotExists()
     {
-        var context = CreateInMemoryContext();
-        var service = CreateService(context);
+        var (service, _) = CreateService();
 
         var result = await service.GetByIdAsync(999);
 
@@ -99,8 +92,7 @@ public class ProductServiceTests
     [Fact]
     public async Task CreateAsync_ShouldAddProduct()
     {
-        var context = CreateInMemoryContext();
-        var service = CreateService(context);
+        var (service, context) = CreateService();
 
         var product = new Product
         {
