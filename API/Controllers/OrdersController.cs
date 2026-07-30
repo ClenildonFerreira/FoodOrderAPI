@@ -4,6 +4,7 @@ using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 using FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
 using FoodOrderAPI.Application.Orders.Queries.GetOrderById;
 using FoodOrderAPI.Application.Orders.Queries.GetOrders;
+using FoodOrderAPI.Application.Orders.Queries.GetOrdersSummary;
 using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +21,8 @@ public class OrdersController : ControllerBase
     private readonly UpdateOrderStatusHandler _updateOrderStatusHandler;
     private readonly GetOrderByIdHandler _getOrderByIdHandler;
     private readonly GetOrdersHandler _getOrdersHandler;
+    private readonly GetOrdersSummaryHandler _getOrdersSummaryHandler;
+
 
 
     public OrdersController(
@@ -27,7 +30,8 @@ public class OrdersController : ControllerBase
             CreateOrderHandler createOrderHandler,
             UpdateOrderStatusHandler updateOrderStatusHandler,
             GetOrderByIdHandler getOrderByIdHandler,
-            GetOrdersHandler getOrdersHandler
+            GetOrdersHandler getOrdersHandler,
+            GetOrdersSummaryHandler getOrdersSummaryHandler
             )
     {
         _orderService = orderService;
@@ -35,6 +39,7 @@ public class OrdersController : ControllerBase
         _updateOrderStatusHandler = updateOrderStatusHandler;
         _getOrderByIdHandler = getOrderByIdHandler;
         _getOrdersHandler = getOrdersHandler;
+        _getOrdersSummaryHandler = getOrdersSummaryHandler;
     }
 
     [HttpGet]
@@ -59,7 +64,7 @@ public class OrdersController : ControllerBase
     [HttpGet("summary")]
     public async Task<ActionResult<OrderSummaryDto>> GetSummary()
     {
-        var summary = await _orderService.GetSummaryAsync();
+        var summary = await _getOrdersSummaryHandler.Handle(new GetOrdersSummaryQuery());
         return Ok(summary);
     }
 
