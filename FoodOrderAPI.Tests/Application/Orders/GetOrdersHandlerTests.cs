@@ -128,7 +128,7 @@ public class GetOrdersHandlerTests
             }
         };
 
-        var order = new Order(customerName, null, OrderType.Delivery, items);
+        var order = Order.Create(customerName, null, OrderType.Delivery, items).Value;
         typeof(Order).GetProperty(nameof(Order.Id))!.SetValue(order, id);
         return order;
     }

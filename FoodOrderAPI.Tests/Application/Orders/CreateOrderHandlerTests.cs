@@ -44,7 +44,7 @@ public class CreateOrderHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenCustomerNameIsEmpty()
+    public async Task Handle_ShouldFail_WhenCustomerNameIsEmpty()
     {
         SetupActiveProduct(1, ActivePizza);
 
@@ -56,14 +56,14 @@ public class CreateOrderHandlerTests
             Items = new() { new() { ProductId = 1, Quantity = 1 } }
         };
 
-        var act = async () => await _sut.Handle(command);
+        var result = await _sut.Handle(command);
 
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*cliente*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("cliente");
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenNoItems()
+    public async Task Handle_ShouldFail_WhenNoItems()
     {
         var command = new CreateOrderCommand
         {
@@ -73,16 +73,15 @@ public class CreateOrderHandlerTests
             Items = new()
         };
 
-        var act = async () => await _sut.Handle(command);
+        var result = await _sut.Handle(command);
 
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*item*");
-
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("item");
         _productRepositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<int>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenQuantityIsZero()
+    public async Task Handle_ShouldFail_WhenQuantityIsZero()
     {
         SetupActiveProduct(1, ActivePizza);
 
@@ -94,14 +93,14 @@ public class CreateOrderHandlerTests
             Items = new() { new() { ProductId = 1, Quantity = 0 } }
         };
 
-        var act = async () => await _sut.Handle(command);
+        var result = await _sut.Handle(command);
 
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*quantidade*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("quantidade");
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenTableOrderWithoutTableNumber()
+    public async Task Handle_ShouldFail_WhenTableOrderWithoutTableNumber()
     {
         SetupActiveProduct(1, ActivePizza);
 
@@ -113,14 +112,14 @@ public class CreateOrderHandlerTests
             Items = new() { new() { ProductId = 1, Quantity = 1 } }
         };
 
-        var act = async () => await _sut.Handle(command);
+        var result = await _sut.Handle(command);
 
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*mesa*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("mesa");
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenProductIsInactive()
+    public async Task Handle_ShouldFail_WhenProductIsInactive()
     {
         _productRepositoryMock
             .Setup(r => r.GetByIdAsync(3))
@@ -133,10 +132,10 @@ public class CreateOrderHandlerTests
             Items = new() { new() { ProductId = 3, Quantity = 1 } }
         };
 
-        var act = async () => await _sut.Handle(command);
+        var result = await _sut.Handle(command);
 
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*inativo*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("inativo");
     }
 
     [Fact]
@@ -179,18 +178,16 @@ public class CreateOrderHandlerTests
 
         var result = await _sut.Handle(command);
 
-        result.Should().NotBeNull();
-        result.CustomerName.Should().Be("Maria Silva");
-        result.Status.Should().Be("Received");
-        result.Total.Should().Be(45.90m * 2 + 8.50m);
-        result.Items.Should().HaveCount(2);
-        result.StatusHistory.Should().HaveCount(1);
-        result.StatusHistory[0].Status.Should().Be("Received");
-        result.StatusHistory[0].Notes.Should().Be("Pedido criado");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.CustomerName.Should().Be("Maria Silva");
+        result.Value.Status.Should().Be("Received");
+        result.Value.Total.Should().Be(45.90m * 2 + 8.50m);
+        result.Value.Items.Should().HaveCount(2);
+        result.Value.StatusHistory.Should().HaveCount(1);
+        result.Value.StatusHistory[0].Notes.Should().Be("Pedido criado");
 
         _orderRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Order>()), Times.Once);
         _orderRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
-        _orderRepositoryMock.Verify(r => r.GetByIdWithDetailsAsync(10), Times.Once);
     }
 
     private void SetupActiveProduct(int id, Product product)

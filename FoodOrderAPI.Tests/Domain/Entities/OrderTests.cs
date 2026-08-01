@@ -6,46 +6,46 @@ namespace FoodOrderAPI.Tests.Domain.Entities;
 public class OrderTests
 {
     [Fact]
-    public void Constructor_ShouldThrow_WhenCustomerNameIsEmpty()
+    public void Create_ShouldFail_WhenCustomerNameIsEmpty()
     {
         var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 1, UnitPrice = 10m } };
-        var act = () => new Order("", "10", OrderType.Table, items);
+        var result = Order.Create("", "10", OrderType.Table, items);
 
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("*cliente*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("cliente");
     }
 
     [Fact]
-    public void Constructor_ShouldThrow_WhenNoItems()
+    public void Create_ShouldFail_WhenNoItems()
     {
-        var act = () => new Order("João", "10", OrderType.Table, new List<OrderItem>());
+        var result = Order.Create("João", "10", OrderType.Table, new List<OrderItem>());
 
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("*item*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("item");
     }
 
     [Fact]
-    public void Constructor_ShouldThrow_WhenQuantityIsZero()
+    public void Create_ShouldFail_WhenQuantityIsZero()
     {
         var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 0, UnitPrice = 10m } };
-        var act = () => new Order("João", "10", OrderType.Table, items);
+        var result = Order.Create("João", "10", OrderType.Table, items);
 
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("*quantidade*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("quantidade");
     }
 
     [Fact]
-    public void Constructor_ShouldThrow_WhenTableOrderWithoutTableNumber()
+    public void Create_ShouldFail_WhenTableOrderWithoutTableNumber()
     {
         var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 1, UnitPrice = 10m } };
-        var act = () => new Order("João", null, OrderType.Table, items);
+        var result = Order.Create("João", null, OrderType.Table, items);
 
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("*mesa*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("mesa");
     }
 
     [Fact]
-    public void Constructor_ShouldCreateOrderAndCalculateTotal_WhenValid()
+    public void Create_ShouldCreateOrderAndCalculateTotal_WhenValid()
     {
         var items = new List<OrderItem>
         {
@@ -53,9 +53,10 @@ public class OrderTests
             new() { ProductId = 2, Quantity = 1, UnitPrice = 8.50m }
         };
 
-        var order = new Order("Maria Silva", "12", OrderType.Table, items);
+        var result = Order.Create("Maria Silva", "12", OrderType.Table, items);
 
-        order.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        var order = result.Value;
         order.CustomerName.Should().Be("Maria Silva");
         order.TableNumber.Should().Be("12");
         order.Type.Should().Be(OrderType.Table);
@@ -70,10 +71,11 @@ public class OrderTests
     public void ChangeStatus_ShouldUpdateStatusAndAddHistory_WhenTransitionIsValid()
     {
         var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 1, UnitPrice = 10m } };
-        var order = new Order("Carlos", null, OrderType.Delivery, items);
+        var order = Order.Create("Carlos", null, OrderType.Delivery, items).Value;
 
-        order.ChangeStatus(OrderStatus.Preparing, "Em preparo");
+        var result = order.ChangeStatus(OrderStatus.Preparing, "Em preparo");
 
+        result.IsSuccess.Should().BeTrue();
         order.Status.Should().Be(OrderStatus.Preparing);
         order.StatusHistory.Should().HaveCount(2);
         order.StatusHistory.Last().Status.Should().Be(OrderStatus.Preparing);
@@ -81,14 +83,15 @@ public class OrderTests
     }
 
     [Fact]
-    public void ChangeStatus_ShouldThrow_WhenTransitionIsInvalid()
+    public void ChangeStatus_ShouldFail_WhenTransitionIsInvalid()
     {
         var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 1, UnitPrice = 10m } };
-        var order = new Order("Carlos", null, OrderType.Delivery, items);
+        var order = Order.Create("Carlos", null, OrderType.Delivery, items).Value;
 
-        var act = () => order.ChangeStatus(OrderStatus.Delivered);
+        var result = order.ChangeStatus(OrderStatus.Delivered);
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Não é permitido*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("Não é permitido");
+        order.Status.Should().Be(OrderStatus.Received);
     }
 }

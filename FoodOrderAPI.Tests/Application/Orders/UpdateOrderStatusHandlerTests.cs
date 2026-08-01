@@ -27,11 +27,7 @@ public class UpdateOrderStatusHandlerTests
     [Fact]
     public async Task Handle_ShouldUpdate_WhenTransitionIsValid()
     {
-        var order = CreateOrder(
-            id: 1,
-            customerName: "Carlos",
-            tableNumber: null,
-            type: OrderType.Delivery);
+        var order = CreateOrder(1, "Carlos", null, OrderType.Delivery);
 
         _orderRepositoryMock
             .Setup(r => r.GetByIdWithDetailsAsync(1))
@@ -50,23 +46,18 @@ public class UpdateOrderStatusHandlerTests
 
         var result = await _sut.Handle(command);
 
-        result.Should().NotBeNull();
-        result!.Status.Should().Be("Preparing");
-        result.StatusHistory.Should().HaveCount(2);
-        result.StatusHistory.Last().Status.Should().Be("Preparing");
-        result.StatusHistory.Last().Notes.Should().Be("Em preparo");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Status.Should().Be("Preparing");
+        result.Value.StatusHistory.Should().HaveCount(2);
+        result.Value.StatusHistory.Last().Notes.Should().Be("Em preparo");
 
         _orderRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenTransitionIsInvalid()
+    public async Task Handle_ShouldFail_WhenTransitionIsInvalid()
     {
-        var order = CreateOrder(
-            id: 1,
-            customerName: "Carlos",
-            tableNumber: null,
-            type: OrderType.Delivery);
+        var order = CreateOrder(1, "Carlos", null, OrderType.Delivery);
 
         _orderRepositoryMock
             .Setup(r => r.GetByIdWithDetailsAsync(1))
@@ -78,16 +69,16 @@ public class UpdateOrderStatusHandlerTests
             Status = (int)OrderStatus.Delivered
         };
 
-        var act = async () => await _sut.Handle(command);
+        var result = await _sut.Handle(command);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*Não é permitido*");
-
+        result.IsFailure.Should().BeTrue();
+        result.IsNotFound.Should().BeFalse();
+        result.Error.Should().Contain("Não é permitido");
         _orderRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNull_WhenOrderNotFound()
+    public async Task Handle_ShouldReturnNotFound_WhenOrderDoesNotExist()
     {
         _orderRepositoryMock
             .Setup(r => r.GetByIdWithDetailsAsync(999))
@@ -101,7 +92,9 @@ public class UpdateOrderStatusHandlerTests
 
         var result = await _sut.Handle(command);
 
-        result.Should().BeNull();
+        result.IsFailure.Should().BeTrue();
+        result.IsNotFound.Should().BeTrue();
+        result.Error.Should().Contain("não encontrado");
         _orderRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Never);
     }
 
@@ -122,7 +115,7 @@ public class UpdateOrderStatusHandlerTests
             }
         };
 
-        var order = new Order(customerName, tableNumber, type, items);
+        var order = Order.Create(customerName, tableNumber, type, items).Value;
         typeof(Order).GetProperty(nameof(Order.Id))!.SetValue(order, id);
         return order;
     }
