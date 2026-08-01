@@ -9,6 +9,7 @@ using FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
 using FoodOrderAPI.Application.Orders.Queries.GetOrderById;
 using FoodOrderAPI.Application.Orders.Queries.GetOrders;
 using FoodOrderAPI.Application.Orders.Queries.GetOrdersSummary;
+using FoodOrderAPI.Application.Products.Queries.GetProducts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -89,8 +90,8 @@ builder.Services.AddScoped<UpdateOrderStatusHandler>();
 builder.Services.AddScoped<GetOrderByIdHandler>();
 builder.Services.AddScoped<GetOrdersHandler>();
 builder.Services.AddScoped<GetOrdersSummaryHandler>();
+builder.Services.AddScoped<GetProductsHandler>();
 builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();

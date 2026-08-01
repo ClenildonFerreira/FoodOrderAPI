@@ -16,7 +16,6 @@ namespace FoodOrderAPI.API.Controllers;
 [Authorize]
 public class OrdersController : ControllerBase
 {
-    private readonly IOrderService _orderService;
     private readonly CreateOrderHandler _createOrderHandler;
     private readonly UpdateOrderStatusHandler _updateOrderStatusHandler;
     private readonly GetOrderByIdHandler _getOrderByIdHandler;
@@ -26,7 +25,6 @@ public class OrdersController : ControllerBase
 
 
     public OrdersController(
-            IOrderService orderService, 
             CreateOrderHandler createOrderHandler,
             UpdateOrderStatusHandler updateOrderStatusHandler,
             GetOrderByIdHandler getOrderByIdHandler,
@@ -34,7 +32,6 @@ public class OrdersController : ControllerBase
             GetOrdersSummaryHandler getOrdersSummaryHandler
             )
     {
-        _orderService = orderService;
         _createOrderHandler = createOrderHandler;
         _updateOrderStatusHandler = updateOrderStatusHandler;
         _getOrderByIdHandler = getOrderByIdHandler;

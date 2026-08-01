@@ -2,6 +2,7 @@ using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using FoodOrderAPI.Application.Products.Queries.GetProducts;
 
 namespace FoodOrderAPI.API.Controllers;
 
@@ -11,10 +12,12 @@ namespace FoodOrderAPI.API.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
+    private readonly GetProductsHandler _getProductsHandler;
 
-    public ProductsController(IProductService productService)
+    public ProductsController(IProductService productService, GetProductsHandler getProductsHandler)
     {
         _productService = productService;
+        _getProductsHandler = getProductsHandler;
     }
     
     [AllowAnonymous]
@@ -23,7 +26,13 @@ public class ProductsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await _productService.GetAllAsync(page, pageSize);
+        var query = new GetProductsQuery
+        {
+            Page = page,
+            PageSize = pageSize
+        };
+
+        var result = await _getProductsHandler.Handle(query);
         return Ok(result);
     }
 
