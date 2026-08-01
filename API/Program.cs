@@ -94,7 +94,6 @@ builder.Services.AddScoped<GetOrdersSummaryHandler>();
 builder.Services.AddScoped<GetProductsHandler>();
 builder.Services.AddScoped<GetProductByIdHandler>();
 builder.Services.AddScoped<ImportProductsHandler>();
-builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();

@@ -13,17 +13,15 @@ namespace FoodOrderAPI.API.Controllers;
 [Route("api/v1/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly IProductService _productService;
     private readonly GetProductsHandler _getProductsHandler;
     private readonly GetProductByIdHandler _getProductByIdHandler;
     private readonly ImportProductsHandler _importProductsHandler;
 
-    public ProductsController(IProductService productService, 
-                            ImportProductsHandler importProductsHandler, 
-                            GetProductsHandler getProductsHandler, 
-                            GetProductByIdHandler getProductByIdHandler)
+    public ProductsController(ImportProductsHandler importProductsHandler, 
+                                GetProductsHandler getProductsHandler, 
+                                GetProductByIdHandler getProductByIdHandler
+                            )
     {
-        _productService = productService;
         _getProductsHandler = getProductsHandler;
         _getProductByIdHandler = getProductByIdHandler;
         _importProductsHandler = importProductsHandler;
