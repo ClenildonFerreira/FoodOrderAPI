@@ -1,0 +1,116 @@
+using FoodOrderAPI.Application.Interfaces;
+using FoodOrderAPI.Application.Products.Commands.ImportProducts;
+using FoodOrderAPI.Domain.Entities;
+using FluentAssertions;
+using Moq;
+
+namespace FoodOrderAPI.Tests.Application.Products;
+
+public class ImportProductsHandlerTests
+{
+    private readonly Mock<IProductRepository> _productRepositoryMock = new();
+    private readonly Mock<IHttpClientFactory> _httpClientFactoryMock = new();
+    private readonly ImportProductsHandler _sut;
+
+    public ImportProductsHandlerTests()
+    {
+        _httpClientFactoryMock
+            .Setup(f => f.CreateClient(It.IsAny<string>()))
+            .Returns(new HttpClient(new FakeHttpMessageHandler())
+            {
+                BaseAddress = new Uri("https://www.themealdb.com/")
+            });
+
+        _sut = new ImportProductsHandler(
+            _productRepositoryMock.Object,
+            _httpClientFactoryMock.Object);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldImportProducts()
+    {
+        _productRepositoryMock
+            .Setup(r => r.GetExistingExternalIdsAsync())
+            .ReturnsAsync(new HashSet<string>());
+
+        _productRepositoryMock
+            .Setup(r => r.AddRangeAsync(It.IsAny<IEnumerable<Product>>()))
+            .Returns(Task.CompletedTask);
+
+        _productRepositoryMock
+            .Setup(r => r.SaveChangesAsync())
+            .Returns(Task.CompletedTask);
+
+        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 2 });
+
+        // Same fake meal id for both requests → only 1 unique product
+        imported.Should().Be(1);
+
+        _productRepositoryMock.Verify(
+            r => r.AddRangeAsync(It.Is<IEnumerable<Product>>(p =>
+                p.Count() == 1 &&
+                p.All(x => x.IsActive && x.ExternalId == "52772"))),
+            Times.Once);
+
+        _productRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSkipExistingExternalIds()
+    {
+        _productRepositoryMock
+            .Setup(r => r.GetExistingExternalIdsAsync())
+            .ReturnsAsync(new HashSet<string> { "52772" });
+
+        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 1 });
+
+        imported.Should().Be(0);
+
+        _productRepositoryMock.Verify(
+            r => r.AddRangeAsync(It.IsAny<IEnumerable<Product>>()),
+            Times.Never);
+
+        _productRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnZero_WhenQuantityIsZeroOrNegative()
+    {
+        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 0 });
+
+        imported.Should().Be(0);
+
+        _productRepositoryMock.Verify(
+            r => r.GetExistingExternalIdsAsync(),
+            Times.Never);
+    }
+}
+
+file class FakeHttpMessageHandler : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        var json = """
+        {
+          "meals": [
+            {
+              "idMeal": "52772",
+              "strMeal": "Teriyaki Chicken Casserole",
+              "strCategory": "Chicken",
+              "strInstructions": "Instruções de preparo do prato de teste.",
+              "strMealThumb": "https://www.themealdb.com/images/media/meals/wvpsxx1468257224.jpg"
+            }
+          ]
+        }
+        """;
+
+        var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+        {
+            Content = new StringContent(json)
+        };
+
+        return Task.FromResult(response);
+    }
+}
