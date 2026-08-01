@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FoodOrderAPI.Application.Products.Queries.GetProducts;
 using FoodOrderAPI.Application.Products.Queries.GetProductById;
+using FoodOrderAPI.Application.Products.Commands.ImportProducts;
 
 namespace FoodOrderAPI.API.Controllers;
 
@@ -15,12 +16,17 @@ public class ProductsController : ControllerBase
     private readonly IProductService _productService;
     private readonly GetProductsHandler _getProductsHandler;
     private readonly GetProductByIdHandler _getProductByIdHandler;
+    private readonly ImportProductsHandler _importProductsHandler;
 
-    public ProductsController(IProductService productService, GetProductsHandler getProductsHandler, GetProductByIdHandler getProductByIdHandler)
+    public ProductsController(IProductService productService, 
+                            ImportProductsHandler importProductsHandler, 
+                            GetProductsHandler getProductsHandler, 
+                            GetProductByIdHandler getProductByIdHandler)
     {
         _productService = productService;
         _getProductsHandler = getProductsHandler;
         _getProductByIdHandler = getProductByIdHandler;
+        _importProductsHandler = importProductsHandler;
     }
     
     [AllowAnonymous]
@@ -49,15 +55,11 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost("import")]
-    public async Task<IActionResult> ImportFromTheMealDB([FromQuery] int quantity = 10)
+    public async Task<IActionResult> Import([FromQuery] int quantity = 10)
     {
-        var imported = await _productService.ImportFromTheMealDBAsync(quantity);
+        var command = new ImportProductsCommand { Quantity = quantity };
+        var importedCount = await _importProductsHandler.Handle(command);
 
-        return Ok(new
-        {
-            message = $"{imported} produto(s) importado(s) com sucesso do TheMealDB.",
-            requested = quantity,
-            imported
-        });
+        return Ok(new { message = $"{importedCount} produtos importados com sucesso." });
     }
 }

@@ -11,9 +11,9 @@ using FoodOrderAPI.Application.Orders.Queries.GetOrders;
 using FoodOrderAPI.Application.Orders.Queries.GetOrdersSummary;
 using FoodOrderAPI.Application.Products.Queries.GetProducts;
 using FoodOrderAPI.Application.Products.Queries.GetProductById;
+using FoodOrderAPI.Application.Products.Commands.ImportProducts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -93,6 +93,7 @@ builder.Services.AddScoped<GetOrdersHandler>();
 builder.Services.AddScoped<GetOrdersSummaryHandler>();
 builder.Services.AddScoped<GetProductsHandler>();
 builder.Services.AddScoped<GetProductByIdHandler>();
+builder.Services.AddScoped<ImportProductsHandler>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
