@@ -1,5 +1,6 @@
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
+using FoodOrderAPI.Domain.Common;
 using FoodOrderAPI.Domain.Entities;
 
 namespace FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
@@ -13,17 +14,19 @@ public class UpdateOrderStatusHandler
         _orderRepository = orderRepository;
     }
 
-    public async Task<OrderDto?> Handle(UpdateOrderStatusCommand command)
+    public async Task<Result<OrderDto>> Handle(UpdateOrderStatusCommand command)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(command.OrderId);
-        if (order is null) return null;
+        if (order is null)
+            return Result.NotFound<OrderDto>("Pedido não encontrado.");
 
-        var newStatus = (OrderStatus)command.Status;
-        order.ChangeStatus(newStatus, command.Notes);
+        var changeResult = order.ChangeStatus((OrderStatus)command.Status, command.Notes);
+        if (changeResult.IsFailure)
+            return Result.Failure<OrderDto>(changeResult.Error);
 
         await _orderRepository.SaveChangesAsync();
 
-        return MapToDto(order);
+        return Result.Success(MapToDto(order));
     }
 
     private static OrderDto MapToDto(Order order)

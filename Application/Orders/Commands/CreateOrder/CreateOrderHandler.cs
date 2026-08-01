@@ -1,5 +1,6 @@
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
+using FoodOrderAPI.Domain.Common;
 using FoodOrderAPI.Domain.Entities;
 
 namespace FoodOrderAPI.Application.Orders.Commands.CreateOrder;
@@ -17,10 +18,10 @@ public class CreateOrderHandler
         _productRepository = productRepository;
     }
 
-    public async Task<OrderDto> Handle(CreateOrderCommand command)
+    public async Task<Result<OrderDto>> Handle(CreateOrderCommand command)
     {
         if (command.Items is null || !command.Items.Any())
-            throw new ArgumentException("O pedido deve conter pelo menos 1 item.");
+            return Result.Failure<OrderDto>("O pedido deve conter pelo menos 1 item.");
 
         var items = new List<OrderItem>();
 
@@ -29,10 +30,11 @@ public class CreateOrderHandler
             var product = await _productRepository.GetByIdAsync(itemDto.ProductId);
 
             if (product is null)
-                throw new ArgumentException($"Produto com ID {itemDto.ProductId} não encontrado.");
+                return Result.Failure<OrderDto>($"Produto com ID {itemDto.ProductId} não encontrado.");
 
             if (!product.IsActive)
-                throw new ArgumentException($"O Produto {product.Name} está inativo e não pode ser adicionado ao pedido.");
+                return Result.Failure<OrderDto>(
+                    $"O Produto {product.Name} está inativo e não pode ser adicionado ao pedido.");
 
             items.Add(new OrderItem
             {
@@ -42,20 +44,25 @@ public class CreateOrderHandler
             });
         }
 
-        var order = new Order(
+        var orderResult = Order.Create(
             command.CustomerName,
             command.TableNumber,
             (OrderType)command.Type,
-            items
-        );
+            items);
+
+        if (orderResult.IsFailure)
+            return Result.Failure<OrderDto>(orderResult.Error);
+
+        var order = orderResult.Value;
 
         await _orderRepository.AddAsync(order);
         await _orderRepository.SaveChangesAsync();
 
-        var createdOrder = await _orderRepository.GetByIdWithDetailsAsync(order.Id)
-            ?? throw new Exception("Erro ao criar pedido.");
+        var createdOrder = await _orderRepository.GetByIdWithDetailsAsync(order.Id);
+        if (createdOrder is null)
+            return Result.Failure<OrderDto>("Erro ao criar pedido.");
 
-        return MapToDto(createdOrder);
+        return Result.Success(MapToDto(createdOrder));
     }
 
     private static OrderDto MapToDto(Order order)

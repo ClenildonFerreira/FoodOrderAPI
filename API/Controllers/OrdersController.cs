@@ -1,13 +1,13 @@
+using FoodOrderAPI.API.Extensions;
 using FoodOrderAPI.Application.DTOs;
-using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 using FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
 using FoodOrderAPI.Application.Orders.Queries.GetOrderById;
 using FoodOrderAPI.Application.Orders.Queries.GetOrders;
 using FoodOrderAPI.Application.Orders.Queries.GetOrdersSummary;
 using FoodOrderAPI.Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FoodOrderAPI.API.Controllers;
 
@@ -22,15 +22,12 @@ public class OrdersController : ControllerBase
     private readonly GetOrdersHandler _getOrdersHandler;
     private readonly GetOrdersSummaryHandler _getOrdersSummaryHandler;
 
-
-
     public OrdersController(
-            CreateOrderHandler createOrderHandler,
-            UpdateOrderStatusHandler updateOrderStatusHandler,
-            GetOrderByIdHandler getOrderByIdHandler,
-            GetOrdersHandler getOrdersHandler,
-            GetOrdersSummaryHandler getOrdersSummaryHandler
-            )
+        CreateOrderHandler createOrderHandler,
+        UpdateOrderStatusHandler updateOrderStatusHandler,
+        GetOrderByIdHandler getOrderByIdHandler,
+        GetOrdersHandler getOrdersHandler,
+        GetOrdersSummaryHandler getOrdersSummaryHandler)
     {
         _createOrderHandler = createOrderHandler;
         _updateOrderStatusHandler = updateOrderStatusHandler;
@@ -76,16 +73,15 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<OrderDto>> Create([FromBody] CreateOrderCommand command)
     {
-        var order = await _createOrderHandler.Handle(command);
-        return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
+        var result = await _createOrderHandler.Handle(command);
+        return result.ToCreatedAtActionResult(this, nameof(GetById), order => new { id = order.Id });
     }
 
     [HttpPatch("{id}/status")]
     public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusCommand command)
     {
         command.OrderId = id;
-        var order = await _updateOrderStatusHandler.Handle(command);
-        if (order is null) return NotFound();
-        return Ok(order);
+        var result = await _updateOrderStatusHandler.Handle(command);
+        return result.ToActionResult();
     }
 }
