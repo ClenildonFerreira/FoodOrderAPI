@@ -1,26 +1,23 @@
 using FoodOrderAPI.Application.Interfaces;
-using FoodOrderAPI.Application.Services;
+using FoodOrderAPI.Application.Orders.Queries.GetOrdersSummary;
 using FoodOrderAPI.Domain.Entities;
 using FluentAssertions;
 using Moq;
 
-namespace FoodOrderAPI.Tests.Application.Services;
+namespace FoodOrderAPI.Tests.Application.Orders;
 
-public class OrderServiceTests
+public class GetOrdersSummaryHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock = new();
-    private readonly Mock<IProductRepository> _productRepositoryMock = new();
-    private readonly OrderService _sut;
+    private readonly GetOrdersSummaryHandler _sut;
 
-    public OrderServiceTests()
+    public GetOrdersSummaryHandlerTests()
     {
-        _sut = new OrderService(
-            _orderRepositoryMock.Object,
-            _productRepositoryMock.Object);
+        _sut = new GetOrdersSummaryHandler(_orderRepositoryMock.Object);
     }
 
     [Fact]
-    public async Task GetSummaryAsync_ShouldReturnCounts()
+    public async Task Handle_ShouldReturnCounts()
     {
         _orderRepositoryMock
             .Setup(r => r.GetSummaryAsync())
@@ -30,10 +27,13 @@ public class OrderServiceTests
                 [OrderStatus.Preparing] = 2
             });
 
-        var summary = await _sut.GetSummaryAsync();
+        var summary = await _sut.Handle(new GetOrdersSummaryQuery());
 
         summary.Received.Should().Be(1);
         summary.Preparing.Should().Be(2);
+        summary.Ready.Should().Be(0);
+        summary.Delivered.Should().Be(0);
+        summary.Cancelled.Should().Be(0);
         summary.Total.Should().Be(3);
     }
 }
