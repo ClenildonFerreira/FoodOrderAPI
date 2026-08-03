@@ -44,7 +44,7 @@ public class UpdateOrderStatusHandlerTests
             Notes = "Em preparo"
         };
 
-        var result = await _sut.Handle(command);
+        var result = await _sut.Handle(command, default);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Status.Should().Be("Preparing");
@@ -69,7 +69,7 @@ public class UpdateOrderStatusHandlerTests
             Status = (int)OrderStatus.Delivered
         };
 
-        var result = await _sut.Handle(command);
+        var result = await _sut.Handle(command, default);
 
         result.IsFailure.Should().BeTrue();
         result.IsNotFound.Should().BeFalse();
@@ -90,7 +90,7 @@ public class UpdateOrderStatusHandlerTests
             Status = (int)OrderStatus.Preparing
         };
 
-        var result = await _sut.Handle(command);
+        var result = await _sut.Handle(command, default);
 
         result.IsFailure.Should().BeTrue();
         result.IsNotFound.Should().BeTrue();
@@ -120,3 +120,4 @@ public class UpdateOrderStatusHandlerTests
         return order;
     }
 }
+

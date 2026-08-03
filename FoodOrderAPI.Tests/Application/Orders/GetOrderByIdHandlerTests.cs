@@ -33,7 +33,7 @@ public class GetOrderByIdHandlerTests
             .Setup(r => r.GetByIdWithDetailsAsync(5))
             .ReturnsAsync(order);
 
-        var result = await _sut.Handle(new GetOrderByIdQuery(5));
+        var result = await _sut.Handle(new GetOrderByIdQuery(5), default);
 
         result.Should().NotBeNull();
         result!.CustomerName.Should().Be("Ana");
@@ -48,7 +48,7 @@ public class GetOrderByIdHandlerTests
             .Setup(r => r.GetByIdWithDetailsAsync(999))
             .ReturnsAsync((Order?)null);
 
-        var result = await _sut.Handle(new GetOrderByIdQuery(999));
+        var result = await _sut.Handle(new GetOrderByIdQuery(999), default);
 
         result.Should().BeNull();
     }

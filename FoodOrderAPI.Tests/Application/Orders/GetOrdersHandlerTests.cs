@@ -37,7 +37,7 @@ public class GetOrdersHandlerTests
         {
             Page = 1,
             PageSize = 10
-        });
+        }, default);
 
         result.Items.Should().HaveCount(1);
         result.Items[0].CustomerName.Should().Be("Pedro");
@@ -65,14 +65,14 @@ public class GetOrdersHandlerTests
             Status = OrderStatus.Preparing,
             Page = 1,
             PageSize = 10
-        });
+        }, default);
 
         var received = await _sut.Handle(new GetOrdersQuery
         {
             Status = OrderStatus.Received,
             Page = 1,
             PageSize = 10
-        });
+        }, default);
 
         preparing.Items.Should().HaveCount(1);
         received.Items.Should().BeEmpty();
@@ -89,7 +89,7 @@ public class GetOrdersHandlerTests
         {
             Page = 0,
             PageSize = 0
-        });
+        }, default);
 
         result.Page.Should().Be(1);
         result.PageSize.Should().Be(10);
@@ -108,7 +108,7 @@ public class GetOrdersHandlerTests
         {
             Page = 1,
             PageSize = 100
-        });
+        }, default);
 
         result.PageSize.Should().Be(50);
 

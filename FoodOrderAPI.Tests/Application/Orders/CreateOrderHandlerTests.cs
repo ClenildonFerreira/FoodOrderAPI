@@ -56,7 +56,7 @@ public class CreateOrderHandlerTests
             Items = new() { new() { ProductId = 1, Quantity = 1 } }
         };
 
-        var result = await _sut.Handle(command);
+        var result = await _sut.Handle(command, default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("cliente");
@@ -73,7 +73,7 @@ public class CreateOrderHandlerTests
             Items = new()
         };
 
-        var result = await _sut.Handle(command);
+        var result = await _sut.Handle(command, default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("item");
@@ -93,7 +93,7 @@ public class CreateOrderHandlerTests
             Items = new() { new() { ProductId = 1, Quantity = 0 } }
         };
 
-        var result = await _sut.Handle(command);
+        var result = await _sut.Handle(command, default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("quantidade");
@@ -112,7 +112,7 @@ public class CreateOrderHandlerTests
             Items = new() { new() { ProductId = 1, Quantity = 1 } }
         };
 
-        var result = await _sut.Handle(command);
+        var result = await _sut.Handle(command, default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("mesa");
@@ -132,7 +132,7 @@ public class CreateOrderHandlerTests
             Items = new() { new() { ProductId = 3, Quantity = 1 } }
         };
 
-        var result = await _sut.Handle(command);
+        var result = await _sut.Handle(command, default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("inativo");
@@ -176,7 +176,7 @@ public class CreateOrderHandlerTests
             }
         };
 
-        var result = await _sut.Handle(command);
+        var result = await _sut.Handle(command, default);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.CustomerName.Should().Be("Maria Silva");
@@ -216,3 +216,4 @@ public class CreateOrderHandlerTests
         }
     }
 }
+

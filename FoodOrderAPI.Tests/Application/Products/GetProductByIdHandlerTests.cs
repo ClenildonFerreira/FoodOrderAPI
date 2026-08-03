@@ -40,7 +40,7 @@ public class GetProductByIdHandlerTests
             .Setup(r => r.GetByIdAsync(1))
             .ReturnsAsync(ActivePizza);
 
-        var result = await _sut.Handle(new GetProductByIdQuery(1));
+        var result = await _sut.Handle(new GetProductByIdQuery(1), default);
 
         result.Should().NotBeNull();
         result!.Name.Should().Be("Pizza");
@@ -55,7 +55,7 @@ public class GetProductByIdHandlerTests
             .Setup(r => r.GetByIdAsync(3))
             .ReturnsAsync(InactiveProduct);
 
-        var result = await _sut.Handle(new GetProductByIdQuery(3));
+        var result = await _sut.Handle(new GetProductByIdQuery(3), default);
 
         result.Should().BeNull();
     }
@@ -67,7 +67,7 @@ public class GetProductByIdHandlerTests
             .Setup(r => r.GetByIdAsync(999))
             .ReturnsAsync((Product?)null);
 
-        var result = await _sut.Handle(new GetProductByIdQuery(999));
+        var result = await _sut.Handle(new GetProductByIdQuery(999), default);
 
         result.Should().BeNull();
     }

@@ -27,7 +27,7 @@ public class GetOrdersSummaryHandlerTests
                 [OrderStatus.Preparing] = 2
             });
 
-        var summary = await _sut.Handle(new GetOrdersSummaryQuery());
+        var summary = await _sut.Handle(new GetOrdersSummaryQuery(), default);
 
         summary.Received.Should().Be(1);
         summary.Preparing.Should().Be(2);

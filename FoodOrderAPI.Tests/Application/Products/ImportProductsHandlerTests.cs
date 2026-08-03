@@ -41,7 +41,7 @@ public class ImportProductsHandlerTests
             .Setup(r => r.SaveChangesAsync())
             .Returns(Task.CompletedTask);
 
-        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 2 });
+        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 2 }, default);
 
         // Same fake meal id for both requests → only 1 unique product
         imported.Should().Be(1);
@@ -62,7 +62,7 @@ public class ImportProductsHandlerTests
             .Setup(r => r.GetExistingExternalIdsAsync())
             .ReturnsAsync(new HashSet<string> { "52772" });
 
-        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 1 });
+        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 1 }, default);
 
         imported.Should().Be(0);
 
@@ -76,7 +76,7 @@ public class ImportProductsHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnZero_WhenQuantityIsZeroOrNegative()
     {
-        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 0 });
+        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 0 }, default);
 
         imported.Should().Be(0);
 

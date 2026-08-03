@@ -45,7 +45,7 @@ public class GetProductsHandlerTests
         {
             Page = 1,
             PageSize = 10
-        });
+        }, default);
 
         result.Items.Should().HaveCount(2);
         result.Items.Should().OnlyContain(p => p.Name == "Pizza" || p.Name == "Suco");
@@ -65,7 +65,7 @@ public class GetProductsHandlerTests
         {
             Page = 0,
             PageSize = 0
-        });
+        }, default);
 
         result.Page.Should().Be(1);
         result.PageSize.Should().Be(10);
@@ -84,7 +84,7 @@ public class GetProductsHandlerTests
         {
             Page = 1,
             PageSize = 100
-        });
+        }, default);
 
         result.PageSize.Should().Be(50);
 
