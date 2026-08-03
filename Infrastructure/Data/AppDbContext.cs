@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
+        public DbSet<User> Users => Set<User>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -45,5 +46,12 @@ public class AppDbContext : DbContext
             modelBuilder.Entity<Product>()
                 .HasIndex(p => p.IsActive)
                 .HasDatabaseName("IX_Product_IsActive");
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasIndex(u => u.Email)
+                    .IsUnique()
+                    .HasDatabaseName("IX_User_Email");
+            });
     }
 }
