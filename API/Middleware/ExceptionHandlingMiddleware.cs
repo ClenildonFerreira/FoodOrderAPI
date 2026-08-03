@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using FluentValidation;
 
 namespace FoodOrderAPI.API.Middleware;
 
@@ -30,6 +31,25 @@ public class ExceptionHandlingMiddleware
     {
         _logger.LogError(exception, "Erro não tratado: {Message}", exception.Message);
 
+        context.Response.ContentType = "application/json";
+
+        if (exception is ValidationException validationException)
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            var validationResponse = new
+            {
+                statusCode = (int)HttpStatusCode.BadRequest,
+                error = "Erro de validação",
+                details = validationException.Errors.Select(e => new 
+                { 
+                    field = e.PropertyName, 
+                    error = e.ErrorMessage 
+                })  
+            };
+            await context.Response.WriteAsync(JsonSerializer.Serialize(validationResponse));
+            return;
+        }
+
         var (statusCode, message) = exception switch
         {
             ArgumentException => (HttpStatusCode.BadRequest, exception.Message),
@@ -38,7 +58,6 @@ public class ExceptionHandlingMiddleware
             _ => (HttpStatusCode.InternalServerError, "Ocorreu um erro interno no servidor.")
         };
 
-        context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
 
         var response = new
@@ -47,7 +66,6 @@ public class ExceptionHandlingMiddleware
             statusCode = (int)statusCode
         };
 
-        var json = JsonSerializer.Serialize(response);
-        await context.Response.WriteAsync(json);
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 }

@@ -18,22 +18,24 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
         RequestHandlerDelegate<TResponse> next, 
         CancellationToken cancellationToken)
     {
-        if (_validators.Any())
+        if (!_validators.Any())
             return await next();
             
             var context = new ValidationContext<TRequest>(request);
 
-            var erros = _validators
-                .Select(v => v.Validate(context))
-                .SelectMany(result => result.Errors)
+            var validationResults = await Task.WhenAll(
+                _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+
+            var failures = validationResults
+                .SelectMany(r => r.Errors)
                 .Where(f => f != null)
                 .ToList();
-        if (erros.Any())
-        {
-        var errorMassage = string.Join("; ", erros.Select(e => e.ErrorMessage));
-        throw new ValidationException(errorMassage);
-        }
-        return await next();
+
+            if (failures.Any())
+            {
+                throw new ValidationException(failures);
+            }
+
+            return await next();
     }
 }
-
