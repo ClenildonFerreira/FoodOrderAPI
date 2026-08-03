@@ -5,13 +5,6 @@ using FoodOrderAPI.API.Middleware;
 using FoodOrderAPI.Application.Services;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
-using FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
-using FoodOrderAPI.Application.Orders.Queries.GetOrderById;
-using FoodOrderAPI.Application.Orders.Queries.GetOrders;
-using FoodOrderAPI.Application.Orders.Queries.GetOrdersSummary;
-using FoodOrderAPI.Application.Products.Queries.GetProducts;
-using FoodOrderAPI.Application.Products.Queries.GetProductById;
-using FoodOrderAPI.Application.Products.Commands.ImportProducts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -86,15 +79,11 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<CreateOrderHandler>();
-builder.Services.AddScoped<UpdateOrderStatusHandler>();
-builder.Services.AddScoped<GetOrderByIdHandler>();
-builder.Services.AddScoped<GetOrdersHandler>();
-builder.Services.AddScoped<GetOrdersSummaryHandler>();
-builder.Services.AddScoped<GetProductsHandler>();
-builder.Services.AddScoped<GetProductByIdHandler>();
-builder.Services.AddScoped<ImportProductsHandler>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddMediatR(cfg => 
+    cfg.RegisterServicesFromAssembly(typeof(CreateOrderHandler).Assembly)
+);
 
 var app = builder.Build();
 

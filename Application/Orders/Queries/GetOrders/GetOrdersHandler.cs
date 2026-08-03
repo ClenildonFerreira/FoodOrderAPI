@@ -1,10 +1,11 @@
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Domain.Entities;
+using MediatR;
 
 namespace FoodOrderAPI.Application.Orders.Queries.GetOrders;
 
-public class GetOrdersHandler
+public class GetOrdersHandler : IRequestHandler<GetOrdersQuery, PagedResultDto<OrderDto>>
 {
     private readonly IOrderRepository _orderRepository;
 
@@ -13,7 +14,7 @@ public class GetOrdersHandler
         _orderRepository = orderRepository;
     }
 
-    public async Task<PagedResultDto<OrderDto>> Handle(GetOrdersQuery query)
+    public async Task<PagedResultDto<OrderDto>> Handle(GetOrdersQuery query, CancellationToken cancellationToken)
     {
         if (query.Page < 1) query.Page = 1;
         if (query.PageSize < 1) query.PageSize = 10;

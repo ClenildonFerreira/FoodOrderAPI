@@ -1,10 +1,11 @@
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Domain.Entities;
+using MediatR;
 
 namespace FoodOrderAPI.Application.Orders.Queries.GetOrdersSummary;
 
-public class GetOrdersSummaryHandler
+public class GetOrdersSummaryHandler : IRequestHandler<GetOrdersSummaryQuery, OrderSummaryDto>
 {
     private readonly IOrderRepository _orderRepository;
 
@@ -13,7 +14,7 @@ public class GetOrdersSummaryHandler
         _orderRepository = orderRepository;
     }
 
-    public async Task<OrderSummaryDto> Handle(GetOrdersSummaryQuery query)
+    public async Task<OrderSummaryDto> Handle(GetOrdersSummaryQuery query, CancellationToken cancellationToken)
     {
         var summary = await _orderRepository.GetSummaryAsync();
 

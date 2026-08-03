@@ -1,10 +1,10 @@
 using FoodOrderAPI.Application.DTOs;
-using FoodOrderAPI.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FoodOrderAPI.Application.Products.Queries.GetProducts;
 using FoodOrderAPI.Application.Products.Queries.GetProductById;
 using FoodOrderAPI.Application.Products.Commands.ImportProducts;
+using MediatR;
 
 namespace FoodOrderAPI.API.Controllers;
 
@@ -13,18 +13,12 @@ namespace FoodOrderAPI.API.Controllers;
 [Route("api/v1/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly GetProductsHandler _getProductsHandler;
-    private readonly GetProductByIdHandler _getProductByIdHandler;
-    private readonly ImportProductsHandler _importProductsHandler;
+    private readonly IMediator _mediator;
 
-    public ProductsController(ImportProductsHandler importProductsHandler, 
-                                GetProductsHandler getProductsHandler, 
-                                GetProductByIdHandler getProductByIdHandler
-                            )
+    public ProductsController(IMediator mediator)
     {
-        _getProductsHandler = getProductsHandler;
-        _getProductByIdHandler = getProductByIdHandler;
-        _importProductsHandler = importProductsHandler;
+        _mediator = mediator;
+        
     }
     
     [AllowAnonymous]
@@ -39,7 +33,7 @@ public class ProductsController : ControllerBase
             PageSize = pageSize
         };
 
-        var result = await _getProductsHandler.Handle(query);
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 
@@ -47,7 +41,7 @@ public class ProductsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductDto>> GetById(int id)
     {
-        var product = await _getProductByIdHandler.Handle(new GetProductByIdQuery(id));
+        var product = await _mediator.Send(new GetProductByIdQuery(id));
         if (product is null) return NotFound();
         return Ok(product);
     }
@@ -56,7 +50,7 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> Import([FromQuery] int quantity = 10)
     {
         var command = new ImportProductsCommand { Quantity = quantity };
-        var importedCount = await _importProductsHandler.Handle(command);
+        var importedCount = await _mediator.Send(command);
 
         return Ok(new { message = $"{importedCount} produtos importados com sucesso." });
     }

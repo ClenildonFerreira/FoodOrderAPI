@@ -1,10 +1,11 @@
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Domain.Entities;
+using MediatR;
 
 namespace FoodOrderAPI.Application.Products.Queries.GetProductById;
 
-public class GetProductByIdHandler
+public class GetProductByIdHandler : IRequestHandler<GetProductByIdQuery, ProductDto?>
 {
     private readonly IProductRepository _productRepository;
 
@@ -13,7 +14,7 @@ public class GetProductByIdHandler
         _productRepository = productRepository;
     }
 
-    public async Task<ProductDto?> Handle(GetProductByIdQuery query)
+    public async Task<ProductDto?> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
     {
         var product = await _productRepository.GetByIdAsync(query.Id);
 

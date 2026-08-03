@@ -1,8 +1,10 @@
+using MediatR;
+using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Domain.Entities;
 
 namespace FoodOrderAPI.Application.Orders.Queries.GetOrders;
 
-public class GetOrdersQuery
+public class GetOrdersQuery : IRequest<PagedResultDto<OrderDto>>
 {
     public OrderStatus? Status { get; set; }
     public OrderType? Type { get; set; }

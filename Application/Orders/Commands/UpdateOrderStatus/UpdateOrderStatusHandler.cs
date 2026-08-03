@@ -2,10 +2,11 @@ using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Domain.Common;
 using FoodOrderAPI.Domain.Entities;
+using MediatR;
 
 namespace FoodOrderAPI.Application.Orders.Commands.UpdateOrderStatus;
 
-public class UpdateOrderStatusHandler
+public class UpdateOrderStatusHandler : IRequestHandler<UpdateOrderStatusCommand, Result<OrderDto>>
 {
     private readonly IOrderRepository _orderRepository;
 
@@ -14,7 +15,7 @@ public class UpdateOrderStatusHandler
         _orderRepository = orderRepository;
     }
 
-    public async Task<Result<OrderDto>> Handle(UpdateOrderStatusCommand command)
+    public async Task<Result<OrderDto>> Handle(UpdateOrderStatusCommand command, CancellationToken cancellationToken)
     {
         var order = await _orderRepository.GetByIdWithDetailsAsync(command.OrderId);
         if (order is null)

@@ -1,10 +1,11 @@
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Domain.Entities;
 using System.Text.Json;
+using MediatR;
 
 namespace FoodOrderAPI.Application.Products.Commands.ImportProducts;
 
-public class ImportProductsHandler
+public class ImportProductsHandler : IRequestHandler<ImportProductsCommand, int>
 {
     private readonly IProductRepository _productRepository;
     private readonly HttpClient _httpClient;
@@ -17,7 +18,7 @@ public class ImportProductsHandler
         _httpClient = httpClientFactory.CreateClient();
     }
 
-    public async Task<int> Handle(ImportProductsCommand command)
+    public async Task<int> Handle(ImportProductsCommand command, CancellationToken cancellationToken)
     {
         var quantity = Math.Clamp(command.Quantity, 0, 100);
         if (quantity == 0) return 0;

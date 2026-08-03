@@ -2,10 +2,11 @@ using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Domain.Common;
 using FoodOrderAPI.Domain.Entities;
+using MediatR;
 
 namespace FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 
-public class CreateOrderHandler
+public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Result<OrderDto>>
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
@@ -18,7 +19,7 @@ public class CreateOrderHandler
         _productRepository = productRepository;
     }
 
-    public async Task<Result<OrderDto>> Handle(CreateOrderCommand command)
+    public async Task<Result<OrderDto>> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
     {
         if (command.Items is null || !command.Items.Any())
             return Result.Failure<OrderDto>("O pedido deve conter pelo menos 1 item.");

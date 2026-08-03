@@ -8,6 +8,7 @@ using FoodOrderAPI.Application.Orders.Queries.GetOrdersSummary;
 using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
 
 namespace FoodOrderAPI.API.Controllers;
 
@@ -16,24 +17,10 @@ namespace FoodOrderAPI.API.Controllers;
 [Authorize]
 public class OrdersController : ControllerBase
 {
-    private readonly CreateOrderHandler _createOrderHandler;
-    private readonly UpdateOrderStatusHandler _updateOrderStatusHandler;
-    private readonly GetOrderByIdHandler _getOrderByIdHandler;
-    private readonly GetOrdersHandler _getOrdersHandler;
-    private readonly GetOrdersSummaryHandler _getOrdersSummaryHandler;
-
-    public OrdersController(
-        CreateOrderHandler createOrderHandler,
-        UpdateOrderStatusHandler updateOrderStatusHandler,
-        GetOrderByIdHandler getOrderByIdHandler,
-        GetOrdersHandler getOrdersHandler,
-        GetOrdersSummaryHandler getOrdersSummaryHandler)
+    private readonly IMediator _mediator;
+    public OrdersController(IMediator mediator)
     {
-        _createOrderHandler = createOrderHandler;
-        _updateOrderStatusHandler = updateOrderStatusHandler;
-        _getOrderByIdHandler = getOrderByIdHandler;
-        _getOrdersHandler = getOrdersHandler;
-        _getOrdersSummaryHandler = getOrdersSummaryHandler;
+        _mediator = mediator;
     }
 
     [HttpGet]
@@ -51,21 +38,21 @@ public class OrdersController : ControllerBase
             PageSize = pageSize
         };
 
-        var result = await _getOrdersHandler.Handle(query);
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 
     [HttpGet("summary")]
     public async Task<ActionResult<OrderSummaryDto>> GetSummary()
     {
-        var summary = await _getOrdersSummaryHandler.Handle(new GetOrdersSummaryQuery());
+        var summary = await _mediator.Send(new GetOrdersSummaryQuery());
         return Ok(summary);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<OrderDto>> GetById(int id)
     {
-        var order = await _getOrderByIdHandler.Handle(new GetOrderByIdQuery(id));
+        var order = await _mediator.Send(new GetOrderByIdQuery(id));
         if (order is null) return NotFound();
         return Ok(order);
     }
@@ -73,7 +60,7 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<OrderDto>> Create([FromBody] CreateOrderCommand command)
     {
-        var result = await _createOrderHandler.Handle(command);
+        var result = await _mediator.Send(command);
         return result.ToCreatedAtActionResult(this, nameof(GetById), order => new { id = order.Id });
     }
 
@@ -81,7 +68,7 @@ public class OrdersController : ControllerBase
     public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusCommand command)
     {
         command.OrderId = id;
-        var result = await _updateOrderStatusHandler.Handle(command);
+        var result = await _mediator.Send(command);
         return result.ToActionResult();
     }
 }

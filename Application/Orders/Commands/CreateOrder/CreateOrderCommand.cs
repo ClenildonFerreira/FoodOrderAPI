@@ -1,6 +1,10 @@
+using MediatR;
+using FoodOrderAPI.Application.DTOs;
+using FoodOrderAPI.Domain.Common;
+
 namespace FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 
-public class CreateOrderCommand
+public class CreateOrderCommand : IRequest<Result<OrderDto>>
 {
     public string CustomerName { get; set; } = string.Empty;
     public string? TableNumber { get; set; }
