@@ -11,6 +11,9 @@ using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using FoodOrderAPI.Infrastructure.Data.Repositories;
 using FoodOrderApi.Application.Common.Behaviors;
+using Microsoft.AspNetCore.Builder;
+using FoodOrderAPI.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,6 +82,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();

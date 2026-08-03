@@ -28,7 +28,7 @@ namespace FoodOrderAPI.Tests.Domain.Entities
         public void Create_InvalidName_ShouldThrowArgumentException(string? invalidName)
         {
             // Arrange
-            Action act = () => new User(invalidName, "john@example.com", "hash123", UserRole.Waiter);
+            Action act = () => new User(invalidName!, "john@example.com", "hash123", UserRole.Waiter);
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("*Name*");
