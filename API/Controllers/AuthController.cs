@@ -1,6 +1,7 @@
 using FoodOrderAPI.Application.DTOs;
-using FoodOrderAPI.Application.Interfaces;
+using FoodOrderAPI.Application.Auth.Command.Login;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
 
 namespace FoodOrderAPI.API.Controllers;
 
@@ -8,21 +9,21 @@ namespace FoodOrderAPI.API.Controllers;
 [Route("api/v1/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IAuthService _authService;
+    private readonly IMediator _mediator;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IMediator mediator)
     {
-        _authService = authService;
+        _mediator = mediator;
     }
 
     [HttpPost("login")]
-    public ActionResult<LoginResponseDto> Login([FromBody] LoginDto dto)
+    public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginCommand command)
     {
-        var result = _authService.Login(dto);
+        var result = await _mediator.Send(command);
 
-        if (result is null)
-            return Unauthorized(new { error = "Usuário ou senha inválidos." });
+        if (result.IsFailure)
+            return Unauthorized(new {error = result.Error});
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 }
