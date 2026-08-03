@@ -2,7 +2,7 @@ using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Domain.Common;
 using MediatR;
 
-namespace FoodOrderAPI.Application.Auth.Command.Login;
+namespace FoodOrderAPI.Application.Auth.Commands.Login;
 
 public class LoginCommand : IRequest<Result<LoginResponseDto>>
 {

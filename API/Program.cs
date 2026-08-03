@@ -2,7 +2,6 @@ using System.Text;
 using Microsoft.OpenApi;
 using FluentValidation;
 using FoodOrderAPI.API.Middleware;
-using FoodOrderAPI.Application.Services;
 using FoodOrderAPI.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,7 +10,6 @@ using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using FoodOrderAPI.Infrastructure.Data.Repositories;
 using FoodOrderApi.Application.Common.Behaviors;
-using Microsoft.AspNetCore.Builder;
 using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
@@ -86,7 +84,6 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(CreateOrderHandler).Assembly);

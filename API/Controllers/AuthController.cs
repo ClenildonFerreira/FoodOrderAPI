@@ -1,5 +1,5 @@
 using FoodOrderAPI.Application.DTOs;
-using FoodOrderAPI.Application.Auth.Command.Login;
+using FoodOrderAPI.Application.Auth.Commands.Login;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 

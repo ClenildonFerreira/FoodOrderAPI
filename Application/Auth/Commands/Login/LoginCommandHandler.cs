@@ -9,15 +9,15 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FoodOrderAPI.Application.Auth.Command.Login;
+namespace FoodOrderAPI.Application.Auth.Commands.Login;
 
-public class LoginCommandHadler : IRequestHandler<LoginCommand, Result<LoginResponseDto>>
+public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginResponseDto>>
 {
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _config;
     private readonly IPasswordHasher<User> _passwordHasher;
 
-    public LoginCommandHadler(
+    public LoginCommandHandler(
         IUserRepository userRepository,
         IConfiguration config,
         IPasswordHasher<User> passwordHasher
