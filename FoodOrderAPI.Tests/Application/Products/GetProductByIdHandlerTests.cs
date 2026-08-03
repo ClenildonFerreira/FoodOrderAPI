@@ -13,7 +13,7 @@ public class GetProductByIdHandlerTests
 
     private static readonly Product ActivePizza = new()
     {
-        Id = 1,
+        Id = Guid.NewGuid(),
         Name = "Pizza",
         Price = 45.90m,
         IsActive = true,
@@ -22,7 +22,7 @@ public class GetProductByIdHandlerTests
 
     private static readonly Product InactiveProduct = new()
     {
-        Id = 3,
+        Id = Guid.NewGuid(),
         Name = "Prato Antigo",
         Price = 20.00m,
         IsActive = false
@@ -37,10 +37,10 @@ public class GetProductByIdHandlerTests
     public async Task Handle_ShouldReturnProduct_WhenExistsAndActive()
     {
         _productRepositoryMock
-            .Setup(r => r.GetByIdAsync(1))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(ActivePizza);
 
-        var result = await _sut.Handle(new GetProductByIdQuery(1), default);
+        var result = await _sut.Handle(new GetProductByIdQuery(Guid.NewGuid()), default);
 
         result.Should().NotBeNull();
         result!.Name.Should().Be("Pizza");
@@ -52,10 +52,10 @@ public class GetProductByIdHandlerTests
     public async Task Handle_ShouldReturnNull_WhenProductIsInactive()
     {
         _productRepositoryMock
-            .Setup(r => r.GetByIdAsync(3))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(InactiveProduct);
 
-        var result = await _sut.Handle(new GetProductByIdQuery(3), default);
+        var result = await _sut.Handle(new GetProductByIdQuery(Guid.NewGuid()), default);
 
         result.Should().BeNull();
     }
@@ -64,10 +64,10 @@ public class GetProductByIdHandlerTests
     public async Task Handle_ShouldReturnNull_WhenNotExists()
     {
         _productRepositoryMock
-            .Setup(r => r.GetByIdAsync(999))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync((Product?)null);
 
-        var result = await _sut.Handle(new GetProductByIdQuery(999), default);
+        var result = await _sut.Handle(new GetProductByIdQuery(Guid.NewGuid()), default);
 
         result.Should().BeNull();
     }

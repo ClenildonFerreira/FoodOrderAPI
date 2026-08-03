@@ -13,7 +13,7 @@ public class GetOrdersHandlerTests
 
     private static readonly Product ActivePizza = new()
     {
-        Id = 1,
+        Id = Guid.NewGuid(),
         Name = "Pizza",
         Price = 45.90m,
         IsActive = true
@@ -27,7 +27,7 @@ public class GetOrdersHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnOrders()
     {
-        var order = CreateOrder(1, "Pedro", OrderStatus.Received);
+        var order = CreateOrder(Guid.NewGuid(), "Pedro", OrderStatus.Received);
 
         _orderRepositoryMock
             .Setup(r => r.GetPagedAsync(null, null, 1, 10))
@@ -49,7 +49,7 @@ public class GetOrdersHandlerTests
     [Fact]
     public async Task Handle_ShouldFilterByStatus()
     {
-        var preparingOrder = CreateOrder(1, "João", OrderStatus.Received);
+        var preparingOrder = CreateOrder(Guid.NewGuid(), "João", OrderStatus.Received);
         preparingOrder.ChangeStatus(OrderStatus.Preparing);
 
         _orderRepositoryMock
@@ -115,13 +115,13 @@ public class GetOrdersHandlerTests
         _orderRepositoryMock.Verify(r => r.GetPagedAsync(null, null, 1, 50), Times.Once);
     }
 
-    private static Order CreateOrder(int id, string customerName, OrderStatus _)
+    private static Order CreateOrder(Guid id, string customerName, OrderStatus _)
     {
         var items = new List<OrderItem>
         {
             new()
             {
-                ProductId = 1,
+                ProductId = Guid.NewGuid(),
                 Quantity = 1,
                 UnitPrice = 45.90m,
                 Product = ActivePizza

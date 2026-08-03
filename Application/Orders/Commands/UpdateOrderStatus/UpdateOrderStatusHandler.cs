@@ -21,7 +21,7 @@ public class UpdateOrderStatusHandler : IRequestHandler<UpdateOrderStatusCommand
         if (order is null)
             return Result.NotFound<OrderDto>("Pedido não encontrado.");
 
-        var changeResult = order.ChangeStatus((OrderStatus)command.Status, command.Notes);
+        var changeResult = order.ChangeStatus((OrderStatus)command.Dto.Status, command.Dto.Notes);
         if (changeResult.IsFailure)
             return Result.Failure<OrderDto>(changeResult.Error);
 

@@ -6,9 +6,9 @@ namespace FoodOrderAPI.Application.Orders.Queries.GetOrderById;
 
 public class GetOrderByIdQuery : IRequest<OrderDto?>
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
-    public GetOrderByIdQuery(int id)
+    public GetOrderByIdQuery(Guid id)
     {
         Id = id;
     }

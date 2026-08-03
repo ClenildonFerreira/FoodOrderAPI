@@ -5,7 +5,7 @@ namespace FoodOrderAPI.Domain.Entities;
 
 public class Order
 {
-    public int Id { get; private set; }
+    public Guid Id { get; private set; }
     public string CustomerName { get; private set; } = string.Empty;
     public string? TableNumber { get; private set; }
     public OrderType Type { get; private set; }

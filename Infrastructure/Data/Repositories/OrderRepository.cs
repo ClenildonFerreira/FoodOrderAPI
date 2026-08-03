@@ -14,7 +14,7 @@ public class OrderRepository : IOrderRepository
         _context = context;
     }
 
-    public async Task<Order?> GetByIdWithDetailsAsync(int id)
+    public async Task<Order?> GetByIdWithDetailsAsync(Guid id)
     {
         return await _context.Orders
             .Include(o => o.Items)

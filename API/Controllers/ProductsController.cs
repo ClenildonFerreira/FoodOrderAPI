@@ -39,7 +39,7 @@ public class ProductsController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("{id}")]
-    public async Task<ActionResult<ProductDto>> GetById(int id)
+    public async Task<ActionResult<ProductDto>> GetById(Guid id)
     {
         var product = await _mediator.Send(new GetProductByIdQuery(id));
         if (product is null) return NotFound();

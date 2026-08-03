@@ -8,7 +8,7 @@ public class OrderTests
     [Fact]
     public void Create_ShouldFail_WhenCustomerNameIsEmpty()
     {
-        var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 1, UnitPrice = 10m } };
+        var items = new List<OrderItem> { new() { ProductId = Guid.NewGuid(), Quantity = 1, UnitPrice = 10m } };
         var result = Order.Create("", "10", OrderType.Table, items);
 
         result.IsFailure.Should().BeTrue();
@@ -27,7 +27,7 @@ public class OrderTests
     [Fact]
     public void Create_ShouldFail_WhenQuantityIsZero()
     {
-        var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 0, UnitPrice = 10m } };
+        var items = new List<OrderItem> { new() { ProductId = Guid.NewGuid(), Quantity = 0, UnitPrice = 10m } };
         var result = Order.Create("João", "10", OrderType.Table, items);
 
         result.IsFailure.Should().BeTrue();
@@ -37,7 +37,7 @@ public class OrderTests
     [Fact]
     public void Create_ShouldFail_WhenTableOrderWithoutTableNumber()
     {
-        var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 1, UnitPrice = 10m } };
+        var items = new List<OrderItem> { new() { ProductId = Guid.NewGuid(), Quantity = 1, UnitPrice = 10m } };
         var result = Order.Create("João", null, OrderType.Table, items);
 
         result.IsFailure.Should().BeTrue();
@@ -49,8 +49,8 @@ public class OrderTests
     {
         var items = new List<OrderItem>
         {
-            new() { ProductId = 1, Quantity = 2, UnitPrice = 45.90m },
-            new() { ProductId = 2, Quantity = 1, UnitPrice = 8.50m }
+            new() { ProductId = Guid.NewGuid(), Quantity = 2, UnitPrice = 45.90m },
+            new() { ProductId = Guid.NewGuid(), Quantity = 1, UnitPrice = 8.50m }
         };
 
         var result = Order.Create("Maria Silva", "12", OrderType.Table, items);
@@ -70,7 +70,7 @@ public class OrderTests
     [Fact]
     public void ChangeStatus_ShouldUpdateStatusAndAddHistory_WhenTransitionIsValid()
     {
-        var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 1, UnitPrice = 10m } };
+        var items = new List<OrderItem> { new() { ProductId = Guid.NewGuid(), Quantity = 1, UnitPrice = 10m } };
         var order = Order.Create("Carlos", null, OrderType.Delivery, items).Value;
 
         var result = order.ChangeStatus(OrderStatus.Preparing, "Em preparo");
@@ -85,7 +85,7 @@ public class OrderTests
     [Fact]
     public void ChangeStatus_ShouldFail_WhenTransitionIsInvalid()
     {
-        var items = new List<OrderItem> { new() { ProductId = 1, Quantity = 1, UnitPrice = 10m } };
+        var items = new List<OrderItem> { new() { ProductId = Guid.NewGuid(), Quantity = 1, UnitPrice = 10m } };
         var order = Order.Create("Carlos", null, OrderType.Delivery, items).Value;
 
         var result = order.ChangeStatus(OrderStatus.Delivered);

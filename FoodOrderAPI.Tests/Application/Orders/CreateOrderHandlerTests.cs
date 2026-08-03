@@ -14,7 +14,7 @@ public class CreateOrderHandlerTests
 
     private static readonly Product ActivePizza = new()
     {
-        Id = 1,
+        Id = Guid.NewGuid(),
         Name = "Pizza",
         Price = 45.90m,
         IsActive = true
@@ -22,7 +22,7 @@ public class CreateOrderHandlerTests
 
     private static readonly Product ActiveDrink = new()
     {
-        Id = 2,
+        Id = Guid.NewGuid(),
         Name = "Refrigerante",
         Price = 8.50m,
         IsActive = true
@@ -30,7 +30,7 @@ public class CreateOrderHandlerTests
 
     private static readonly Product InactiveProduct = new()
     {
-        Id = 3,
+        Id = Guid.NewGuid(),
         Name = "Prato Inativo",
         Price = 30.00m,
         IsActive = false
@@ -46,14 +46,14 @@ public class CreateOrderHandlerTests
     [Fact]
     public async Task Handle_ShouldFail_WhenCustomerNameIsEmpty()
     {
-        SetupActiveProduct(1, ActivePizza);
+        SetupActiveProduct(ActivePizza.Id, ActivePizza);
 
         var command = new CreateOrderCommand
         {
             CustomerName = "",
             Type = (int)OrderType.Table,
             TableNumber = "10",
-            Items = new() { new() { ProductId = 1, Quantity = 1 } }
+            Items = new() { new() { ProductId = ActivePizza.Id, Quantity = 1 } }
         };
 
         var result = await _sut.Handle(command, default);
@@ -77,20 +77,20 @@ public class CreateOrderHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("item");
-        _productRepositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<int>()), Times.Never);
+        _productRepositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<Guid>()), Times.Never);
     }
 
     [Fact]
     public async Task Handle_ShouldFail_WhenQuantityIsZero()
     {
-        SetupActiveProduct(1, ActivePizza);
+        SetupActiveProduct(ActivePizza.Id, ActivePizza);
 
         var command = new CreateOrderCommand
         {
             CustomerName = "João",
             Type = (int)OrderType.Table,
             TableNumber = "10",
-            Items = new() { new() { ProductId = 1, Quantity = 0 } }
+            Items = new() { new() { ProductId = ActivePizza.Id, Quantity = 0 } }
         };
 
         var result = await _sut.Handle(command, default);
@@ -102,14 +102,14 @@ public class CreateOrderHandlerTests
     [Fact]
     public async Task Handle_ShouldFail_WhenTableOrderWithoutTableNumber()
     {
-        SetupActiveProduct(1, ActivePizza);
+        SetupActiveProduct(ActivePizza.Id, ActivePizza);
 
         var command = new CreateOrderCommand
         {
             CustomerName = "João",
             Type = (int)OrderType.Table,
             TableNumber = null,
-            Items = new() { new() { ProductId = 1, Quantity = 1 } }
+            Items = new() { new() { ProductId = ActivePizza.Id, Quantity = 1 } }
         };
 
         var result = await _sut.Handle(command, default);
@@ -122,14 +122,14 @@ public class CreateOrderHandlerTests
     public async Task Handle_ShouldFail_WhenProductIsInactive()
     {
         _productRepositoryMock
-            .Setup(r => r.GetByIdAsync(3))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(InactiveProduct);
 
         var command = new CreateOrderCommand
         {
             CustomerName = "João",
             Type = (int)OrderType.Delivery,
-            Items = new() { new() { ProductId = 3, Quantity = 1 } }
+            Items = new() { new() { ProductId = ActivePizza.Id, Quantity = 1 } }
         };
 
         var result = await _sut.Handle(command, default);
@@ -141,8 +141,8 @@ public class CreateOrderHandlerTests
     [Fact]
     public async Task Handle_ShouldCreateOrder_WhenDataIsValid()
     {
-        SetupActiveProduct(1, ActivePizza);
-        SetupActiveProduct(2, ActiveDrink);
+        SetupActiveProduct(ActivePizza.Id, ActivePizza);
+        SetupActiveProduct(ActiveDrink.Id, ActiveDrink);
 
         Order? capturedOrder = null;
 
@@ -150,7 +150,7 @@ public class CreateOrderHandlerTests
             .Setup(r => r.AddAsync(It.IsAny<Order>()))
             .Callback<Order>(order =>
             {
-                SetOrderId(order, 10);
+                SetOrderId(order, Guid.NewGuid());
                 AttachProducts(order);
                 capturedOrder = order;
             })
@@ -161,7 +161,7 @@ public class CreateOrderHandlerTests
             .Returns(Task.CompletedTask);
 
         _orderRepositoryMock
-            .Setup(r => r.GetByIdWithDetailsAsync(10))
+            .Setup(r => r.GetByIdWithDetailsAsync(It.IsAny<Guid>()))
             .ReturnsAsync(() => capturedOrder);
 
         var command = new CreateOrderCommand
@@ -171,8 +171,8 @@ public class CreateOrderHandlerTests
             TableNumber = "12",
             Items = new()
             {
-                new() { ProductId = 1, Quantity = 2 },
-                new() { ProductId = 2, Quantity = 1 }
+                new() { ProductId = ActivePizza.Id, Quantity = 2 },
+                new() { ProductId = ActiveDrink.Id, Quantity = 1 }
             }
         };
 
@@ -190,14 +190,14 @@ public class CreateOrderHandlerTests
         _orderRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
-    private void SetupActiveProduct(int id, Product product)
+    private void SetupActiveProduct(Guid id, Product product)
     {
         _productRepositoryMock
             .Setup(r => r.GetByIdAsync(id))
             .ReturnsAsync(product);
     }
 
-    private static void SetOrderId(Order order, int id)
+    private static void SetOrderId(Order order, Guid id)
     {
         typeof(Order).GetProperty(nameof(Order.Id))!.SetValue(order, id);
     }
@@ -206,13 +206,9 @@ public class CreateOrderHandlerTests
     {
         foreach (var item in order.Items)
         {
-            item.Product = item.ProductId switch
-            {
-                1 => ActivePizza,
-                2 => ActiveDrink,
-                3 => InactiveProduct,
-                _ => item.Product
-            };
+            if (item.ProductId == ActivePizza.Id) item.Product = ActivePizza;
+            else if (item.ProductId == ActiveDrink.Id) item.Product = ActiveDrink;
+            else if (item.ProductId == InactiveProduct.Id) item.Product = InactiveProduct;
         }
     }
 }

@@ -9,7 +9,7 @@ using FoodOrderAPI.Infrastructure.Data;
 using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using FoodOrderAPI.Infrastructure.Data.Repositories;
-using FoodOrderApi.Application.Common.Behaviors;
+using FoodOrderAPI.Application.Common.Behaviors;
 using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
@@ -88,7 +88,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(CreateOrderHandler).Assembly);
 
-    cfg.AddBehavior(typeof(ValidationBehavior<,>));
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
 builder.Services.AddValidatorsFromAssembly(typeof(CreateOrderHandler).Assembly);

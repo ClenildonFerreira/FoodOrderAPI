@@ -13,7 +13,7 @@ public class GetOrderByIdHandlerTests
 
     private static readonly Product ActivePizza = new()
     {
-        Id = 1,
+        Id = Guid.NewGuid(),
         Name = "Pizza",
         Price = 45.90m,
         IsActive = true
@@ -27,17 +27,17 @@ public class GetOrderByIdHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnOrder_WhenExists()
     {
-        var order = CreateOrder(5, "Ana");
+        var order = CreateOrder(Guid.NewGuid(), "Ana");
 
         _orderRepositoryMock
-            .Setup(r => r.GetByIdWithDetailsAsync(5))
+            .Setup(r => r.GetByIdWithDetailsAsync(It.IsAny<Guid>()))
             .ReturnsAsync(order);
 
-        var result = await _sut.Handle(new GetOrderByIdQuery(5), default);
+        var result = await _sut.Handle(new GetOrderByIdQuery(Guid.NewGuid()), default);
 
         result.Should().NotBeNull();
         result!.CustomerName.Should().Be("Ana");
-        result.Id.Should().Be(5);
+        result.Id.Should().NotBeEmpty();
         result.Items.Should().ContainSingle(i => i.ProductName == "Pizza");
     }
 
@@ -45,21 +45,21 @@ public class GetOrderByIdHandlerTests
     public async Task Handle_ShouldReturnNull_WhenNotExists()
     {
         _orderRepositoryMock
-            .Setup(r => r.GetByIdWithDetailsAsync(999))
+            .Setup(r => r.GetByIdWithDetailsAsync(It.IsAny<Guid>()))
             .ReturnsAsync((Order?)null);
 
-        var result = await _sut.Handle(new GetOrderByIdQuery(999), default);
+        var result = await _sut.Handle(new GetOrderByIdQuery(Guid.NewGuid()), default);
 
         result.Should().BeNull();
     }
 
-    private static Order CreateOrder(int id, string customerName)
+    private static Order CreateOrder(Guid id, string customerName)
     {
         var items = new List<OrderItem>
         {
             new()
             {
-                ProductId = 1,
+                ProductId = Guid.NewGuid(),
                 Quantity = 1,
                 UnitPrice = 45.90m,
                 Product = ActivePizza

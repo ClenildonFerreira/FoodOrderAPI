@@ -2,7 +2,7 @@ namespace FoodOrderAPI.Application.DTOs;
 
 public class OrderDto
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public string? TableNumber { get; set; }
     public string Type { get; set; } = string.Empty;
@@ -15,7 +15,7 @@ public class OrderDto
 
 public class OrderItemDto
 {
-    public int ProductId { get; set; }
+    public Guid ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }

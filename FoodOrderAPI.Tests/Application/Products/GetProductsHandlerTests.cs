@@ -13,7 +13,7 @@ public class GetProductsHandlerTests
 
     private static readonly Product ActivePizza = new()
     {
-        Id = 1,
+        Id = Guid.NewGuid(),
         Name = "Pizza",
         Price = 45.90m,
         IsActive = true,
@@ -22,7 +22,7 @@ public class GetProductsHandlerTests
 
     private static readonly Product ActiveJuice = new()
     {
-        Id = 2,
+        Id = Guid.NewGuid(),
         Name = "Suco",
         Price = 12.00m,
         IsActive = true,

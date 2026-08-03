@@ -4,7 +4,7 @@ namespace FoodOrderAPI.Application.Interfaces;
 
 public interface IOrderRepository
 {
-    Task<Order?> GetByIdWithDetailsAsync(int id);
+    Task<Order?> GetByIdWithDetailsAsync(Guid id);
     Task<(List<Order> Orders, int TotalCount)> GetPagedAsync(
         OrderStatus? status,
         OrderType? type,

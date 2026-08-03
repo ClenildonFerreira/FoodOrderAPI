@@ -13,7 +13,7 @@ public class UpdateOrderStatusHandlerTests
 
     private static readonly Product ActivePizza = new()
     {
-        Id = 1,
+        Id = Guid.NewGuid(),
         Name = "Pizza",
         Price = 45.90m,
         IsActive = true
@@ -27,10 +27,10 @@ public class UpdateOrderStatusHandlerTests
     [Fact]
     public async Task Handle_ShouldUpdate_WhenTransitionIsValid()
     {
-        var order = CreateOrder(1, "Carlos", null, OrderType.Delivery);
+        var order = CreateOrder(Guid.NewGuid(), "Carlos", null, OrderType.Delivery);
 
         _orderRepositoryMock
-            .Setup(r => r.GetByIdWithDetailsAsync(1))
+            .Setup(r => r.GetByIdWithDetailsAsync(It.IsAny<Guid>()))
             .ReturnsAsync(order);
 
         _orderRepositoryMock
@@ -39,9 +39,8 @@ public class UpdateOrderStatusHandlerTests
 
         var command = new UpdateOrderStatusCommand
         {
-            OrderId = 1,
-            Status = (int)OrderStatus.Preparing,
-            Notes = "Em preparo"
+            OrderId = Guid.NewGuid(),
+            Dto = new FoodOrderAPI.Application.DTOs.UpdateOrderStatusDto { Status = FoodOrderAPI.Application.DTOs.OrderStatusDto.Preparing, Notes = "Em preparo" }
         };
 
         var result = await _sut.Handle(command, default);
@@ -57,16 +56,16 @@ public class UpdateOrderStatusHandlerTests
     [Fact]
     public async Task Handle_ShouldFail_WhenTransitionIsInvalid()
     {
-        var order = CreateOrder(1, "Carlos", null, OrderType.Delivery);
+        var order = CreateOrder(Guid.NewGuid(), "Carlos", null, OrderType.Delivery);
 
         _orderRepositoryMock
-            .Setup(r => r.GetByIdWithDetailsAsync(1))
+            .Setup(r => r.GetByIdWithDetailsAsync(It.IsAny<Guid>()))
             .ReturnsAsync(order);
 
         var command = new UpdateOrderStatusCommand
         {
-            OrderId = 1,
-            Status = (int)OrderStatus.Delivered
+            OrderId = Guid.NewGuid(),
+            Dto = new FoodOrderAPI.Application.DTOs.UpdateOrderStatusDto { Status = FoodOrderAPI.Application.DTOs.OrderStatusDto.Delivered }
         };
 
         var result = await _sut.Handle(command, default);
@@ -81,13 +80,13 @@ public class UpdateOrderStatusHandlerTests
     public async Task Handle_ShouldReturnNotFound_WhenOrderDoesNotExist()
     {
         _orderRepositoryMock
-            .Setup(r => r.GetByIdWithDetailsAsync(999))
+            .Setup(r => r.GetByIdWithDetailsAsync(It.IsAny<Guid>()))
             .ReturnsAsync((Order?)null);
 
         var command = new UpdateOrderStatusCommand
         {
-            OrderId = 999,
-            Status = (int)OrderStatus.Preparing
+            OrderId = Guid.NewGuid(),
+            Dto = new FoodOrderAPI.Application.DTOs.UpdateOrderStatusDto { Status = FoodOrderAPI.Application.DTOs.OrderStatusDto.Preparing }
         };
 
         var result = await _sut.Handle(command, default);
@@ -99,7 +98,7 @@ public class UpdateOrderStatusHandlerTests
     }
 
     private static Order CreateOrder(
-        int id,
+        Guid id,
         string customerName,
         string? tableNumber,
         OrderType type)
@@ -108,7 +107,7 @@ public class UpdateOrderStatusHandlerTests
         {
             new()
             {
-                ProductId = 1,
+                ProductId = Guid.NewGuid(),
                 Quantity = 1,
                 UnitPrice = 45.90m,
                 Product = ActivePizza

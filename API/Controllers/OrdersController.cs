@@ -50,7 +50,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<OrderDto>> GetById(int id)
+    public async Task<ActionResult<OrderDto>> GetById(Guid id)
     {
         var order = await _mediator.Send(new GetOrderByIdQuery(id));
         if (order is null) return NotFound();
@@ -65,7 +65,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPatch("{id}/status")]
-    public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusCommand command)
+    public async Task<ActionResult<OrderDto>> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusCommand command)
     {
         command.OrderId = id;
         var result = await _mediator.Send(command);
