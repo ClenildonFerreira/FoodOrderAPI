@@ -21,9 +21,6 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Result<Ord
 
     public async Task<Result<OrderDto>> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
     {
-        if (command.Items is null || !command.Items.Any())
-            return Result.Failure<OrderDto>("O pedido deve conter pelo menos 1 item.");
-
         var items = new List<OrderItem>();
 
         foreach (var itemDto in command.Items)

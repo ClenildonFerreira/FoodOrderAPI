@@ -1,14 +1,16 @@
 using System.Text;
-using FoodOrderAPI.Infrastructure.Data;
-using FoodOrderAPI.Infrastructure.Data.Repositories;
+using Microsoft.OpenApi;
+using FluentValidation;
 using FoodOrderAPI.API.Middleware;
 using FoodOrderAPI.Application.Services;
 using FoodOrderAPI.Application.Interfaces;
-using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
+using FoodOrderAPI.Infrastructure.Data;
+using FoodOrderAPI.Application.Orders.Commands.CreateOrder;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using FoodOrderAPI.Infrastructure.Data.Repositories;
+using FoodOrderApi.Application.Common.Behaviors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,9 +83,13 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.AddMediatR(cfg => 
-    cfg.RegisterServicesFromAssembly(typeof(CreateOrderHandler).Assembly)
-);
+builder.Services.AddMediatR(cfg => {
+    cfg.RegisterServicesFromAssembly(typeof(CreateOrderHandler).Assembly);
+
+    cfg.AddBehavior(typeof(ValidationBehavior<,>));
+});
+
+builder.Services.AddValidatorsFromAssembly(typeof(CreateOrderHandler).Assembly);
 
 var app = builder.Build();
 
