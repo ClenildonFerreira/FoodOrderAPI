@@ -130,7 +130,13 @@ try
 
     builder.Services.AddAuthorization();
 
-    builder.Services.AddHttpClient();
+    builder.Services.AddHttpClient( "TheMealDB", client =>
+    {
+        client.BaseAddress = new Uri("https://www.themealdb.com/api/json/v1/1/");
+        client.Timeout = TimeSpan.FromSeconds(8);
+        client.DefaultRequestHeaders.Add("User-Agent", "FoodOrderAPI/1.0");
+    });
+    
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
     builder.Services.AddScoped<IProductRepository, ProductRepository>();

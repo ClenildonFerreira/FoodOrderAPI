@@ -10,6 +10,7 @@ public class ImportProductsHandlerTests
 {
     private readonly Mock<IProductRepository> _productRepositoryMock = new();
     private readonly Mock<IHttpClientFactory> _httpClientFactoryMock = new();
+    private readonly Mock<Microsoft.Extensions.Logging.ILogger<ImportProductsHandler>> _loggerMock = new();
     private readonly ImportProductsHandler _sut;
 
     public ImportProductsHandlerTests()
@@ -23,7 +24,8 @@ public class ImportProductsHandlerTests
 
         _sut = new ImportProductsHandler(
             _productRepositoryMock.Object,
-            _httpClientFactoryMock.Object);
+            _httpClientFactoryMock.Object,
+            _loggerMock.Object);
     }
 
     [Fact]
@@ -41,10 +43,10 @@ public class ImportProductsHandlerTests
             .Setup(r => r.SaveChangesAsync())
             .Returns(Task.CompletedTask);
 
-        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 2 }, default);
+        var result = await _sut.Handle(new ImportProductsCommand { Quantity = 2 }, default);
 
         // Same fake meal id for both requests → only 1 unique product
-        imported.Should().Be(1);
+        result.Imported.Should().Be(1);
 
         _productRepositoryMock.Verify(
             r => r.AddRangeAsync(It.Is<IEnumerable<Product>>(p =>
@@ -62,9 +64,9 @@ public class ImportProductsHandlerTests
             .Setup(r => r.GetExistingExternalIdsAsync())
             .ReturnsAsync(new HashSet<string> { "52772" });
 
-        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 1 }, default);
+        var result = await _sut.Handle(new ImportProductsCommand { Quantity = 1 }, default);
 
-        imported.Should().Be(0);
+        result.Imported.Should().Be(0);
 
         _productRepositoryMock.Verify(
             r => r.AddRangeAsync(It.IsAny<IEnumerable<Product>>()),
@@ -76,9 +78,9 @@ public class ImportProductsHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnZero_WhenQuantityIsZeroOrNegative()
     {
-        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 0 }, default);
+        var result = await _sut.Handle(new ImportProductsCommand { Quantity = 0 }, default);
 
-        imported.Should().Be(0);
+        result.Imported.Should().Be(0);
 
         _productRepositoryMock.Verify(
             r => r.GetExistingExternalIdsAsync(),

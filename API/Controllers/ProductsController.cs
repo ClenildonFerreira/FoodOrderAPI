@@ -56,11 +56,18 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost("import")]
-    public async Task<IActionResult> Import([FromQuery] int quantity = 10)
+    public async Task<IActionResult> Import(CancellationToken cancellationToken, [FromQuery] int quantity = 10)
     {
         var command = new ImportProductsCommand { Quantity = quantity };
-        var importedCount = await _mediator.Send(command);
+        var result = await _mediator.Send(command, cancellationToken);
 
-        return Ok(new { message = $"{importedCount} produtos importados com sucesso." });
+       return Ok(new
+        {
+            message = $"{result.Imported} produtos importados com sucesso.",
+            imported = result.Imported,
+            skipped = result.Skipped,
+            failedHttp = result.FailedHttp,
+            durationMs = result.Duration
+        });
     }
 }

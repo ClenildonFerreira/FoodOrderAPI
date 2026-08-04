@@ -2,49 +2,108 @@ using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Domain.Entities;
 using System.Text.Json;
 using MediatR;
+using System.Diagnostics;
 
 namespace FoodOrderAPI.Application.Products.Commands.ImportProducts;
 
-public class ImportProductsHandler : IRequestHandler<ImportProductsCommand, int>
+public class ImportProductsHandler : IRequestHandler<ImportProductsCommand, ImportProductsResult>
 {
     private readonly IProductRepository _productRepository;
     private readonly HttpClient _httpClient;
+    private readonly ILogger<ImportProductsHandler> _logger;
 
     public ImportProductsHandler(
         IProductRepository productRepository,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        ILogger<ImportProductsHandler> logger)
     {
         _productRepository = productRepository;
-        _httpClient = httpClientFactory.CreateClient();
+        _httpClient = httpClientFactory.CreateClient("TheMealDB");
+        _logger = logger;
     }
 
-    public async Task<int> Handle(ImportProductsCommand command, CancellationToken cancellationToken)
+    public async Task<ImportProductsResult> Handle(
+        ImportProductsCommand command, 
+        CancellationToken cancellationToken)
     {
-        var quantity = Math.Clamp(command.Quantity, 0, 100);
-        if (quantity == 0) return 0;
+        var totalSw = Stopwatch.StartNew();
 
-        var responses = await FetchMealsAsync(quantity);
+        var quantity = Math.Clamp(command.Quantity, 0, 50);
+        if (quantity == 0)
+        {
+            _logger.LogInformation("importação ignorada: nenhuma quantidade especificada");
+            return new ImportProductsResult(0, 0, 0, 0);
+        }
+
+        _logger.LogInformation($"importando {quantity} produtos");
+
+
+        var fetchSw = Stopwatch.StartNew();
+        var (responses, failedHttp) = await FetchMealsAsync(quantity, cancellationToken);
+        fetchSw.Stop();
+
+        _logger.LogInformation(
+            "Busca no TheMealDB concluída em {ElapsedMs}ms. Sucessos: {SuccessCount}, Falhas HTTP: {FailedCount}",
+            fetchSw.ElapsedMilliseconds,
+            responses.Count,
+            failedHttp);
+        
         var existingIds = await _productRepository.GetExistingExternalIdsAsync();
-        var productsToAdd = new List<Product>();
+        
 
+    
+        var productsToAdd = new List<Product>();
+        var skippeds = 0;
+        
         foreach (var response in responses)
         {
             var product = ParseMeal(response, existingIds);
-            if (product is null) continue;
+            if (product is null) 
+            {
+                skippeds++;
+                continue;
+            }
 
             productsToAdd.Add(product);
             existingIds.Add(product.ExternalId!);
         }
 
-        if (productsToAdd.Count == 0) return 0;
+        if (productsToAdd.Count > 0)
+        {
+            var saveSw = Stopwatch.StartNew();
 
-        await _productRepository.AddRangeAsync(productsToAdd);
-        await _productRepository.SaveChangesAsync();
+            await _productRepository.AddRangeAsync(productsToAdd);
+            await _productRepository.SaveChangesAsync();  
+            saveSw.Stop();
 
-        return productsToAdd.Count;
+            _logger.LogInformation(
+                 "{Count} produtos persistidos em {ElapsedMs}ms",
+                productsToAdd.Count,
+                saveSw.ElapsedMilliseconds);
+        } 
+
+        totalSw.Stop();
+        
+        var result = new ImportProductsResult(
+            Imported: productsToAdd.Count,
+            Skipped: skippeds,
+            FailedHttp: failedHttp,
+            Duration: totalSw.ElapsedMilliseconds
+        );
+
+        _logger.LogInformation(
+            "Importação concluída. Importados: {Imported}, Ignorados: {Skipped}, Falhas HTTP: {FailedHttp}, Duração Total: {DurationMs}ms",
+            result.Imported,
+            result.Skipped,
+            result.FailedHttp,
+            result.Duration);
+
+        return result;
     }
 
-    private async Task<List<string?>> FetchMealsAsync(int quantity)
+    private async Task<(List<string> Responses, int FailedCount)> FetchMealsAsync(
+        int quantity,
+        CancellationToken cancellationToken)
     {
         using var semaphore = new SemaphoreSlim(5);
 
@@ -53,11 +112,12 @@ public class ImportProductsHandler : IRequestHandler<ImportProductsCommand, int>
             await semaphore.WaitAsync();
             try
             {
-                return await _httpClient.GetStringAsync(
-                    "https://www.themealdb.com/api/json/v1/1/random.php");
+                return await _httpClient.GetStringAsync("random.php", cancellationToken);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Falha ao buscar os produtos no TheMealDB");
+                
                 return null;
             }
             finally
@@ -66,10 +126,16 @@ public class ImportProductsHandler : IRequestHandler<ImportProductsCommand, int>
             }
         });
 
-        return (await Task.WhenAll(tasks)).ToList();
+        var results = await Task.WhenAll(tasks);
+
+        var successful = results.Where(r => r is not null).Cast<string>().ToList();
+        
+        var failed = results.Count(r => r is null);
+
+        return (successful, failed);
     }
 
-    private static Product? ParseMeal(string? response, HashSet<string> existingIds)
+    private static Product? ParseMeal(string response, HashSet<string> existingIds)
     {
         if (string.IsNullOrWhiteSpace(response))
             return null;
