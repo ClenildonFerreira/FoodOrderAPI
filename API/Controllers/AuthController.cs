@@ -1,5 +1,7 @@
 using FoodOrderAPI.Application.DTOs;
 using FoodOrderAPI.Application.Auth.Commands.Login;
+using FoodOrderAPI.Application.Auth.Commands.Register;
+using FoodOrderAPI.API.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 
@@ -25,5 +27,12 @@ public class AuthController : ControllerBase
             return Unauthorized(new {error = result.Error});
 
         return Ok(result.Value);
+    }
+
+    [HttpPost("register")]
+    public async Task<ActionResult<UserDto>> Register([FromBody] RegisterUserCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return result.ToActionResult();
     }
 }

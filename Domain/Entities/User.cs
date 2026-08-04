@@ -46,5 +46,13 @@ namespace FoodOrderAPI.Domain.Entities
         {
             IsActive = true;
         }
+
+        public void UpdatePasswordHash(string newHash)
+        {
+            if (string.IsNullOrWhiteSpace(newHash))
+                throw new ArgumentException("Nova hash de senha não pode ser vazio", nameof(newHash));
+
+            PasswordHash = newHash;
+        }
     }
 }

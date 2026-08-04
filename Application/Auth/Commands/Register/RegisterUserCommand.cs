@@ -4,9 +4,10 @@ using MediatR;
 
 namespace FoodOrderAPI.Application.Auth.Commands.Register;
 
-public class RegisterCommand : IRequest<Result<UserDto>>
+public class RegisterUserCommand : IRequest<Result<UserDto>>
 {
-    public string Name { get; set; } = null!;
-    public string Email { get; set; } = null!;
-    public string Password { get; set; } = null!;
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public int Role { get; set; }
 }
