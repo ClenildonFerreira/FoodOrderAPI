@@ -5,12 +5,14 @@ using FoodOrderAPI.Application.Products.Queries.GetProducts;
 using FoodOrderAPI.Application.Products.Queries.GetProductById;
 using FoodOrderAPI.Application.Products.Commands.ImportProducts;
 using MediatR;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FoodOrderAPI.API.Controllers;
 
 [Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
+[EnableRateLimiting("FixedWindowPolicy")]
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +25,9 @@ public class ProductsController : ControllerBase
     
     [AllowAnonymous]
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PagedResultDto<ProductDto>>> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
@@ -39,6 +44,10 @@ public class ProductsController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ProductDto>> GetById(Guid id)
     {
         var product = await _mediator.Send(new GetProductByIdQuery(id));

@@ -9,12 +9,14 @@ using FoodOrderAPI.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FoodOrderAPI.API.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
+[EnableRateLimiting("FixedWindowPolicy")]
 public class OrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -24,6 +26,9 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PagedResultDto<OrderDto>>> GetAll(
         [FromQuery] OrderStatus? status = null,
         [FromQuery] OrderType? type = null,
@@ -43,6 +48,9 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("summary")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrderSummaryDto>> GetSummary()
     {
         var summary = await _mediator.Send(new GetOrdersSummaryQuery());
@@ -50,6 +58,10 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrderDto>> GetById(Guid id)
     {
         var order = await _mediator.Send(new GetOrderByIdQuery(id));
@@ -58,6 +70,10 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrderDto>> Create([FromBody] CreateOrderCommand command)
     {
         var result = await _mediator.Send(command);
@@ -65,6 +81,11 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPatch("{id}/status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrderDto>> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusCommand command)
     {
         command.OrderId = id;
