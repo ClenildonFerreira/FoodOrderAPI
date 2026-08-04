@@ -1,4 +1,5 @@
 using FluentValidation;
+using FoodOrderAPI.Domain.Common;
 using MediatR;
 
 namespace FoodOrderAPI.Application.Common.Behaviors;
@@ -33,7 +34,24 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
 
             if (failures.Any())
             {
+                var errorMessages = string.Join("; ", failures.Select(f => f.ErrorMessage));
+
+                if (typeof(TResponse) == typeof(Result))
+                    return (TResponse)(object)Result.Failure(errorMessages);
+
+                if (typeof(TResponse).IsGenericType && typeof(TResponse).GetGenericTypeDefinition() == typeof(Result<>))
+                {
+                    var resultType = typeof(TResponse).GetGenericArguments()[0];
+                    var failureResult = typeof(Result)
+                        .GetMethods()
+                        .First(m => m.Name == nameof(Result.Failure) && m.IsGenericMethod)
+                        .MakeGenericMethod(resultType);
+                    
+                    return (TResponse)failureResult.Invoke(null, new object[] { errorMessages })!;
+                } 
+                
                 throw new ValidationException(failures);
+
             }
 
             return await next();

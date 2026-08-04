@@ -21,7 +21,7 @@ public class ProductRepository : IProductRepository
 
     public async Task<(List<Product> Products, int TotalCount)> GetActivePagedAsync(int page, int pageSize)
     {
-        var query = _context.Products.Where(p => p.IsActive);
+        var query = _context.Products.AsNoTracking().Where(p => p.IsActive);
 
         var totalCount = await query.CountAsync();
 

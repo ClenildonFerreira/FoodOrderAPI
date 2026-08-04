@@ -20,6 +20,7 @@ public class OrderRepository : IOrderRepository
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
             .Include(o => o.StatusHistory)
+            .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 
@@ -30,6 +31,7 @@ public class OrderRepository : IOrderRepository
         int pageSize)
     {
         var query = _context.Orders
+            .AsNoTracking()
             .Include(o => o.Items)
                 .ThenInclude(i => i.Product)
             .Include(o => o.StatusHistory)

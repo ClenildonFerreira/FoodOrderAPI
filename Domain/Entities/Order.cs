@@ -1,20 +1,20 @@
 using FoodOrderAPI.Domain.Common;
 using FoodOrderAPI.Domain.Services;
+using FoodOrderAPI.Domain.ValueObjects;
 
 namespace FoodOrderAPI.Domain.Entities;
 
-public class Order
+public class Order : AggregateRoot
 {
-    public Guid Id { get; private set; }
-    public string CustomerName { get; private set; } = string.Empty;
-    public string? TableNumber { get; private set; }
-    public OrderType Type { get; private set; }
-    public OrderStatus Status { get; private set; } = OrderStatus.Received;
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-    public decimal Total { get; private set; }
+    public string CustomerName { get; set; } = string.Empty;
+    public string? TableNumber { get; set; }
+    public OrderType Type { get; set; }
+    public OrderStatus Status { get; set; } = OrderStatus.Received;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public Money Total { get;  set; } = Money.Zero();
 
-    public List<OrderItem> Items { get; private set; } = new();
-    public List<OrderStatusHistory> StatusHistory { get; private set; } = new();
+    public List<OrderItem> Items { get; set; } = new();
+    public List<OrderStatusHistory> StatusHistory { get; set; } = new();
 
     private Order() { }
 
@@ -44,7 +44,7 @@ public class Order
             Status = OrderStatus.Received,
             CreatedAt = DateTime.UtcNow,
             Items = items,
-            Total = items.Sum(i => i.UnitPrice * i.Quantity)
+            Total =  new Money(items.Sum(i => i.UnitPrice.Amount * i.Quantity))
         };
 
         order.StatusHistory.Add(new OrderStatusHistory

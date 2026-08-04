@@ -1,3 +1,5 @@
+using FoodOrderAPI.Domain.ValueObjects;
+
 namespace FoodOrderAPI.Application.DTOs;
 
 public class OrderDto

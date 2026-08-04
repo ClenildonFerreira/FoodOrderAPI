@@ -1,4 +1,5 @@
 using FoodOrderAPI.Domain.Entities;
+using FoodOrderAPI.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace FoodOrderAPI.Infrastructure.Data;
@@ -21,10 +22,16 @@ public class AppDbContext : DbContext
                 .WithMany(o => o.Items)
                 .HasForeignKey(oi => oi.OrderId);
 
-            modelBuilder.Entity<OrderItem>()
-                .HasOne(oi => oi.Product)
-                .WithMany()
-                .HasForeignKey(oi => oi.ProductId);
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.HasOne(oi => oi.Product)
+                    .WithMany()
+                    .HasForeignKey(oi => oi.ProductId);
+
+                entity.Property(oi => oi.UnitPrice)
+                    .HasConversion(m => m.Amount, a => new Money(a))
+                    .HasColumnType("decimal(18,2)");
+            });
 
             modelBuilder.Entity<OrderStatusHistory>()
                 .HasOne(h => h.Order)
@@ -41,11 +48,21 @@ public class AppDbContext : DbContext
 
                 entity.HasIndex(o   => o.CreatedAt)
                     .HasDatabaseName("IX_Order_CreatedAt");
+
+                entity.Property(o => o.Total)
+                    .HasConversion(m => m.Amount, a => new Money(a))
+                    .HasColumnType("decimal(18,2)");
             });
 
-            modelBuilder.Entity<Product>()
-                .HasIndex(p => p.IsActive)
-                .HasDatabaseName("IX_Product_IsActive");
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasIndex(p => p.IsActive)
+                    .HasDatabaseName("IX_Product_IsActive");
+
+                entity.Property(p => p.Price)
+                    .HasConversion(m => m.Amount, a => new Money(a))
+                    .HasColumnType("decimal(18,2)");
+            });
 
             modelBuilder.Entity<User>(entity =>
             {
