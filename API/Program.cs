@@ -31,7 +31,7 @@ try
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext()
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
+        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")); 
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
@@ -130,21 +130,13 @@ try
 
     builder.Services.AddAuthorization();
 
-    // Named HttpClient for TheMealDB with timeout (performance + resilience)
-    builder.Services.AddHttpClient("TheMealDB", client =>
-    {
-        client.BaseAddress = new Uri("https://www.themealdb.com/api/json/v1/1/");
-        client.Timeout = TimeSpan.FromSeconds(8);
-        client.DefaultRequestHeaders.Add("User-Agent", "FoodOrderAPI/1.0");
-    });
-
+    builder.Services.AddHttpClient();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
     builder.Services.AddScoped<IProductRepository, ProductRepository>();
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
-    builder.Services.AddMediatR(cfg =>
-    {
+    builder.Services.AddMediatR(cfg => {
         cfg.RegisterServicesFromAssembly(typeof(CreateOrderHandler).Assembly);
         cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
     });
@@ -169,15 +161,14 @@ try
         {
             context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
             context.HttpContext.Response.ContentType = "application/json";
-
-            var errorResponse = new
-            {
+            
+            var errorResponse = new { 
                 Error = "Too many requests. Please try again later.",
-                RetryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter)
-                             ? retryAfter.TotalSeconds.ToString()
+                RetryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter) 
+                             ? retryAfter.TotalSeconds.ToString() 
                              : "60"
             };
-
+            
             await context.HttpContext.Response.WriteAsJsonAsync(errorResponse, cancellationToken: token);
         };
     });
@@ -207,7 +198,7 @@ try
 
     app.UseCors("ProductionCorsPolicy");
 
-    app.UseRateLimiter();
+    app.UseRateLimiter(); 
 
     app.UseAuthentication();
     app.UseAuthorization();
