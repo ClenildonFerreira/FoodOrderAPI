@@ -2,6 +2,7 @@ using FoodOrderAPI.Application.Interfaces;
 using FoodOrderAPI.Application.Products.Commands.ImportProducts;
 using FoodOrderAPI.Domain.Entities;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace FoodOrderAPI.Tests.Application.Products;
@@ -15,15 +16,16 @@ public class ImportProductsHandlerTests
     public ImportProductsHandlerTests()
     {
         _httpClientFactoryMock
-            .Setup(f => f.CreateClient(It.IsAny<string>()))
+            .Setup(f => f.CreateClient("TheMealDB"))
             .Returns(new HttpClient(new FakeHttpMessageHandler())
             {
-                BaseAddress = new Uri("https://www.themealdb.com/")
+                BaseAddress = new Uri("https://www.themealdb.com/api/json/v1/1/")
             });
 
         _sut = new ImportProductsHandler(
             _productRepositoryMock.Object,
-            _httpClientFactoryMock.Object);
+            _httpClientFactoryMock.Object,
+            NullLogger<ImportProductsHandler>.Instance);
     }
 
     [Fact]
@@ -41,10 +43,12 @@ public class ImportProductsHandlerTests
             .Setup(r => r.SaveChangesAsync())
             .Returns(Task.CompletedTask);
 
-        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 2 }, default);
+        var result = await _sut.Handle(new ImportProductsCommand { Quantity = 2 }, default);
 
         // Same fake meal id for both requests → only 1 unique product
-        imported.Should().Be(1);
+        result.Imported.Should().Be(1);
+        result.Skipped.Should().Be(1); // second one is duplicate
+        result.FailedHttp.Should().Be(0);
 
         _productRepositoryMock.Verify(
             r => r.AddRangeAsync(It.Is<IEnumerable<Product>>(p =>
@@ -62,9 +66,10 @@ public class ImportProductsHandlerTests
             .Setup(r => r.GetExistingExternalIdsAsync())
             .ReturnsAsync(new HashSet<string> { "52772" });
 
-        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 1 }, default);
+        var result = await _sut.Handle(new ImportProductsCommand { Quantity = 1 }, default);
 
-        imported.Should().Be(0);
+        result.Imported.Should().Be(0);
+        result.Skipped.Should().Be(1);
 
         _productRepositoryMock.Verify(
             r => r.AddRangeAsync(It.IsAny<IEnumerable<Product>>()),
@@ -76,9 +81,11 @@ public class ImportProductsHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnZero_WhenQuantityIsZeroOrNegative()
     {
-        var imported = await _sut.Handle(new ImportProductsCommand { Quantity = 0 }, default);
+        var result = await _sut.Handle(new ImportProductsCommand { Quantity = 0 }, default);
 
-        imported.Should().Be(0);
+        result.Imported.Should().Be(0);
+        result.Skipped.Should().Be(0);
+        result.FailedHttp.Should().Be(0);
 
         _productRepositoryMock.Verify(
             r => r.GetExistingExternalIdsAsync(),

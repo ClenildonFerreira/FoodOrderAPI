@@ -20,9 +20,8 @@ public class ProductsController : ControllerBase
     public ProductsController(IMediator mediator)
     {
         _mediator = mediator;
-        
     }
-    
+
     [AllowAnonymous]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -55,12 +54,26 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
+    /// <summary>
+    /// Importa pratos aleatórios do TheMealDB.
+    /// Retorna métricas de performance e resultado da importação.
+    /// </summary>
     [HttpPost("import")]
-    public async Task<IActionResult> Import([FromQuery] int quantity = 10)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> Import([FromQuery] int quantity = 10, CancellationToken cancellationToken = default)
     {
         var command = new ImportProductsCommand { Quantity = quantity };
-        var importedCount = await _mediator.Send(command);
+        var result = await _mediator.Send(command, cancellationToken);
 
-        return Ok(new { message = $"{importedCount} produtos importados com sucesso." });
+        return Ok(new
+        {
+            message = $"{result.Imported} produtos importados com sucesso.",
+            imported = result.Imported,
+            skipped = result.Skipped,
+            failedHttp = result.FailedHttp,
+            durationMs = result.DurationMs
+        });
     }
 }
