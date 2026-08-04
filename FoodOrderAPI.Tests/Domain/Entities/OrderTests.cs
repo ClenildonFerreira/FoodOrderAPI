@@ -61,7 +61,7 @@ public class OrderTests
         order.TableNumber.Should().Be("12");
         order.Type.Should().Be(OrderType.Table);
         order.Status.Should().Be(OrderStatus.Received);
-        order.Total.Should().Be(45.90m * 2 + 8.50m);
+        order.Total.Amount.Should().Be(45.90m * 2 + 8.50m);
         order.Items.Should().HaveCount(2);
         order.StatusHistory.Should().HaveCount(1);
         order.StatusHistory[0].Status.Should().Be(OrderStatus.Received);

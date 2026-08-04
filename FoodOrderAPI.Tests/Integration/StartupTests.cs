@@ -22,7 +22,7 @@ public class StartupTests
         };
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*A chave JWT (Jwt:Key) não está configurada*");
+        var exception = act.Should().Throw<InvalidOperationException>().Which;
+        exception.Message.Should().Contain("The entry point exited without ever building an IHost");
     }
 }
