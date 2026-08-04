@@ -11,7 +11,9 @@ A ideia da aplicação surgiu após ver uma vaga em .NET para sistema de aliment
 
 - .NET 10
 - ASP.NET Core Web API
-- Entity Framework Core + SQLite
+- Entity Framework Core + PostgreSQL (via Docker)
+- MediatR (CQS)
+- FluentValidation
 - JWT Authentication
 - xUnit + FluentAssertions + Moq
 - Swagger / OpenAPI
@@ -51,6 +53,15 @@ A ideia da aplicação surgiu após ver uma vaga em .NET para sistema de aliment
 
 ## Regras de Negócio
 
+### Modelagem de Domínio
+O domínio principal é composto pelas seguintes entidades e enumerações:
+- **User**: Representa os usuários do sistema, diferenciados pelo perfil de acesso.
+- **Product**: Pratos ou bebidas disponíveis no cardápio.
+- **Order**: Pedidos realizados (salão ou delivery).
+- **OrderItem**: Itens que compõem um pedido.
+- **OrderStatusHistory**: Registro histórico das mudanças de status de um pedido.
+- **UserRole (Enum)**: Perfis de acesso do sistema, sendo 1=Admin, 2=Garçom e 3=Cozinha.
+
 ### Transições de Status permitidas
 
 | Status Atual | Pode ir para              |
@@ -74,6 +85,8 @@ A ideia da aplicação surgiu após ver uma vaga em .NET para sistema de aliment
 
 ### Pré-requisitos
 - .NET 10 SDK
+- Docker
+- Docker Compose
 
 ### Passos
 
@@ -81,6 +94,7 @@ A ideia da aplicação surgiu após ver uma vaga em .NET para sistema de aliment
 git clone https://github.com/ClenildonFerreira/FoodOrderAPI.git
 cd FoodOrderAPI
 dotnet restore
+docker-compose up -d
 dotnet ef database update
 dotnet run
 ```
@@ -101,13 +115,6 @@ dotnet test
 
 ## Autenticação (JWT)
 
-### Usuários de demonstração
-
-| Usuário  | Senha      |
-|----------|------------|
-| admin    | admin123   |
-| garcom   | garcom123  |
-| cozinha  | cozinha123 |
 
 ### Como autenticar no Swagger
 
@@ -121,8 +128,21 @@ dotnet test
 
 ```json
 {
-  "username": "admin",
+  "email": "admin@restaurante.com",
   "password": "admin123"
+}
+```
+
+### Register (exemplo)
+
+Para criar um novo usuário, envie os dados para `POST /api/v1/auth/register`:
+
+```json
+{
+  "name": "João Garçom",
+  "email": "joao.garcom@restaurante.com",
+  "password": "senhaSegura123",
+  "role": 2
 }
 ```
 
@@ -145,17 +165,18 @@ Em ambiente de produção (Docker/Linux), utilize **Variáveis de Ambiente**:
 
 ### Auth
 
-| Método | Rota                    | Auth | Descrição        |
-|--------|-------------------------|------|------------------|
-| POST   | `/api/v1/auth/login`    | Não  | Gera token JWT   |
+| Método | Rota                       | Auth | Descrição                 |
+|--------|----------------------------|------|---------------------------|
+| POST   | `/api/v1/auth/login`       | Não  | Gera token JWT            |
+| POST   | `/api/v1/auth/register`    | Não  | Registra um novo usuário  |
 
 ### Produtos
 
-| Método | Rota                              | Auth | Descrição                   |
-|--------|-----------------------------------|------|-----------------------------|
-| GET    | `/api/v1/products`                | *    | Lista produtos (paginado)   |
-| GET    | `/api/v1/products/{id}`           | *    | Busca produto por ID        |
-| POST   | `/api/v1/products/import`         | Sim  | Importa pratos do TheMealDB |
+| Método | Rota                                      | Auth | Descrição                   |
+|--------|-------------------------------------------|------|-----------------------------|
+| GET    | `/api/v1/products`                        | *    | Lista produtos (paginado)   |
+| GET    | `/api/v1/products/{id}`                   | *    | Busca produto por ID        |
+| POST   | `/api/v1/products/import?quantity={qtd}`  | Sim  | Importa pratos do TheMealDB |
 
 ### Pedidos
 
@@ -181,8 +202,8 @@ Em ambiente de produção (Docker/Linux), utilize **Variáveis de Ambiente**:
   "tableNumber": "15",
   "type": 1,
   "items": [
-    { "productId": 1, "quantity": 2 },
-    { "productId": 3, "quantity": 1 }
+    { "productId": "d290f1ee-6c54-4b01-90e6-d701748f0851", "quantity": 2 },
+    { "productId": "e14b2d30-8a1a-4f51-b01a-8c5e6f3d1f42", "quantity": 1 }
   ]
 }
 ```
@@ -214,10 +235,13 @@ FoodOrderAPI/
 │   ├── Controllers/                  # Endpoints da API
 │   ├── Middleware/                   # Tratamento global de erros
 │   └── Program.cs
-├── Application/                      # Camada de Aplicação (Casos de Uso)
+├── Application/                      # Camada de Aplicação (Casos de Uso e CQS)
+│   ├── Auth/                         # Features de Autenticação
+│   ├── Common/                       # Funcionalidades Comuns e Pipelines
 │   ├── DTOs/                         # Objetos de transferência de dados
 │   ├── Interfaces/                   # Contratos (Services e Repositories)
-│   └── Services/                     # Lógica de aplicação
+│   ├── Orders/                       # Features de Pedidos
+│   └── Products/                     # Features de Produtos
 ├── Domain/                           # Camada de Domínio
 │   ├── Entities/                     # Entidades de negócio
 │   └── Services/                     # Regras de domínio (ex: transição de status)
